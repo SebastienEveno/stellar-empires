@@ -1,0 +1,9 @@
+[
+  {
+    "Id": "1",
+    "Name": "Earth",
+    "IsColonized": false,
+    "ColonizedBy": null,
+    "ColonizedAt":  null
+  }
+]
