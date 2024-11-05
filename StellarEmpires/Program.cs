@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Options;
-using StellarEmpires.Domain.Services;
-using StellarEmpires.Infrastructure;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
