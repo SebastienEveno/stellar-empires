@@ -1,6 +1,6 @@
 ﻿using StellarEmpires.Events;
 using StellarEmpires.Helpers;
-using StellarEmpires.Infrastructure.EvenStore;
+using StellarEmpires.Infrastructure.EventStore;
 using System.Text.Json;
 
 namespace StellarEmpires.Tests.Infrastructure.EventStore;

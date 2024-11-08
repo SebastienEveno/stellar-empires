@@ -1,7 +1,7 @@
 ﻿using StellarEmpires.Events;
 using System.Text.Json;
 
-namespace StellarEmpires.Infrastructure.EvenStore;
+namespace StellarEmpires.Infrastructure.EventStore;
 
 public class FileEventStore : IEventStore
 {
@@ -9,6 +9,11 @@ public class FileEventStore : IEventStore
 
 	public async Task SaveEventAsync<TEntity>(IDomainEvent domainEvent)
 	{
+		if (!Directory.Exists(BaseDirectory))
+		{
+			Directory.CreateDirectory(BaseDirectory);
+		}
+
 		var filePath = GetFilePathForEntity<TEntity>();
 		var allEvents = await LoadAllEventsAsync(filePath);
 		allEvents.Add(domainEvent);
