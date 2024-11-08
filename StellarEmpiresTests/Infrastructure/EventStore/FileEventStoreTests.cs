@@ -1,6 +1,6 @@
 ﻿using StellarEmpires.Events;
 using StellarEmpires.Helpers;
-using StellarEmpires.Infrastructure.EvenStore;
+using StellarEmpires.Infrastructure.EventStore;
 using StellarEmpires.Tests.Mocks;
 
 namespace StellarEmpires.Tests.Infrastructure.EventStore;

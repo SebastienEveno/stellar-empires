@@ -1,7 +1,7 @@
 ﻿using StellarEmpires.Events;
 using System.Text.Json;
 
-namespace StellarEmpires.Infrastructure.EvenStore;
+namespace StellarEmpires.Infrastructure.EventStore;
 
 public class FileEventStore : IEventStore
 {

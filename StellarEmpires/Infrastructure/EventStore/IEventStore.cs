@@ -1,6 +1,6 @@
 ﻿using StellarEmpires.Events;
 
-namespace StellarEmpires.Infrastructure.EvenStore;
+namespace StellarEmpires.Infrastructure.EventStore;
 
 public interface IEventStore
 {
