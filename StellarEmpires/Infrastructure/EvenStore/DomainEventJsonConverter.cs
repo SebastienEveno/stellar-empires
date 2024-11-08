@@ -6,6 +6,13 @@ namespace StellarEmpires.Infrastructure.EvenStore;
 
 public class DomainEventJsonConverter : JsonConverter<IDomainEvent>
 {
+	private readonly Dictionary<string, Type> _eventTypeMap = new()
+	{
+		{ nameof(MockDomainEvent), typeof(MockDomainEvent) },
+		{ nameof(PlanetColonizedDomainEvent), typeof(PlanetColonizedDomainEvent) }
+	};
+
+
 	public override IDomainEvent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
 		using (var document = JsonDocument.ParseValue(ref reader))
@@ -17,13 +24,15 @@ public class DomainEventJsonConverter : JsonConverter<IDomainEvent>
 			{
 				var eventType = eventTypeElement.GetString();
 
-				return eventType switch
+				if (eventType != null)
 				{
-					nameof(MockDomainEvent) => JsonSerializer.Deserialize<MockDomainEvent>(rootElement.GetRawText(), options),
-					nameof(PlanetColonizedDomainEvent) => JsonSerializer.Deserialize<PlanetColonizedDomainEvent>(rootElement.GetRawText(), options),
-					// Add cases here for other event types in the future
-					_ => throw new NotImplementedException($"Event type '{eventType}' is not supported")
-				};
+					if (_eventTypeMap.TryGetValue(eventType, out var targetType) is false)
+					{
+						throw new NotImplementedException($"Event type '{eventType}' is not supported");
+					}
+
+					return (IDomainEvent?)JsonSerializer.Deserialize(rootElement.GetRawText(), targetType, options) ?? throw new InvalidOperationException($"Could not deserialize event type \"{eventType}\" into target type \"{targetType}\"");
+				}
 			}
 
 			throw new JsonException("Missing EventType property");
