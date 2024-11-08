@@ -59,7 +59,12 @@ public class PlanetTests
 	{
 		// Arrange
 		var colonizationTime = DateTimeProvider.UtcNow;
-		var domainEvent = new PlanetColonizedDomainEvent(_planetId, _playerId, colonizationTime);
+		var domainEvent = new PlanetColonizedDomainEvent
+		{
+			EntityId = _planetId,
+			PlayerId = _playerId,
+			ColonizedAt = colonizationTime
+		};
 
 		// Act
 		_planet.Apply(domainEvent);

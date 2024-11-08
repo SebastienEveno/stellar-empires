@@ -8,6 +8,5 @@ public sealed record MockDomainEvent : IDomainEvent
 
 	public DateTime OccurredOn => DateTimeProvider.UtcNow;
 	public Guid Id => Guid.NewGuid();
-	public Guid EntityId { get; init; }
-	
+	public required Guid EntityId { get; init; }
 }

@@ -25,7 +25,12 @@ public class Planet : Entity
 			throw new InvalidOperationException("Planet is already colonized.");
 		}
 
-		var colonizationEvent = new PlanetColonizedDomainEvent(Id, playerId, DateTimeProvider.UtcNow);
+		var colonizationEvent = new PlanetColonizedDomainEvent
+		{
+			EntityId = Id,
+			PlayerId = playerId,
+			ColonizedAt = DateTimeProvider.UtcNow
+		};
 
 		Apply(colonizationEvent);
 

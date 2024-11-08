@@ -24,7 +24,8 @@ public class DomainEventJsonConverterTests
 	public void Serialize_ShouldIncludeEventType_ForMockDomainEvent()
 	{
 		// Arrange
-		var domainEvent = new MockDomainEvent();
+		var entityId = Guid.NewGuid();
+		var domainEvent = new MockDomainEvent { EntityId = entityId };
 
 		// Act
 		var json = JsonSerializer.Serialize<IDomainEvent>(domainEvent, _options);
@@ -32,6 +33,7 @@ public class DomainEventJsonConverterTests
 		// Assert
 		Assert.That(json, Does.Contain("\"EventType\":\"MockDomainEvent\""));
 		Assert.That(json, Does.Contain("\"OccurredOn\""));
+		Assert.That(json, Does.Contain($"\"EntityId\":\"{entityId}\""));
 	}
 
 	[Test]

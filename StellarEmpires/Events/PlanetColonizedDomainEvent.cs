@@ -1,21 +1,15 @@
-﻿namespace StellarEmpires.Events;
+﻿using StellarEmpires.Helpers;
+
+namespace StellarEmpires.Events;
 
 public sealed record PlanetColonizedDomainEvent : IDomainEvent
 {
 	public string EventType => nameof(PlanetColonizedDomainEvent);
 
-	public Guid EntityId { get; init; }
-	public Guid Id { get; init; }
-	public DateTime OccurredOn { get; init; }
-	public Guid PlayerId { get; init; }
-	public DateTime ColonizedAt { get; init; }
+	public Guid Id => Guid.NewGuid();
+	public DateTime OccurredOn => DateTimeProvider.UtcNow;
 
-	public PlanetColonizedDomainEvent(Guid planetId, Guid playerId, DateTime colonizedAt)
-	{
-		Id = Guid.NewGuid();
-		OccurredOn = DateTime.UtcNow;
-		EntityId = planetId;
-		PlayerId = playerId;
-		ColonizedAt = colonizedAt;
-	}
+	public required Guid EntityId { get; init; }
+	public required Guid PlayerId { get; init; }
+	public required DateTime ColonizedAt { get; init; }
 }
