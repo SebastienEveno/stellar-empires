@@ -148,8 +148,8 @@ public class PlanetsControllerTests
 		var createdResult = result as CreatedAtActionResult;
 		Assert.That(createdResult, Is.Not.Null);
 		Assert.That(createdResult.StatusCode, Is.EqualTo(201));
-		Assert.That(createdResult.Value, Is.InstanceOf<Planet>());
-		Assert.That(((Planet)createdResult.Value).Id, Is.EqualTo(createPlanetDto.Id));
+		Assert.That(createdResult.Value, Is.InstanceOf<ReadPlanetDto>());
+		Assert.That(((ReadPlanetDto)createdResult.Value).Id, Is.EqualTo(createPlanetDto.Id));
 		Assert.That(createdResult.RouteValues["planetId"], Is.EqualTo(createPlanetDto.Id));
 	}
 
@@ -227,6 +227,6 @@ public class PlanetsControllerTests
 		var createdResult = result as CreatedAtActionResult;
 		Assert.That(createdResult, Is.Not.Null);
 		Assert.That(createdResult.RouteValues["planetId"], Is.EqualTo(createPlanetDto.Id));
-		Assert.That(createdResult.Value, Is.InstanceOf<Planet>());
+		Assert.That(createdResult.Value, Is.InstanceOf<ReadPlanetDto>());
 	}
 }

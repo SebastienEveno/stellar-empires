@@ -20,7 +20,7 @@ public class PlanetsController : ControllerBase
 		_planetStore = planetStore;
 	}
 
-	[HttpGet("{planetId}/initial")]
+	[HttpGet("{planetId}/initial", Name = nameof(GetInitialState))]
 	public async Task<IActionResult> GetInitialState(Guid planetId)
 	{
 		try
@@ -35,7 +35,7 @@ public class PlanetsController : ControllerBase
 		}
 	}
 
-	[HttpGet("{planetId}/current")]
+	[HttpGet("{planetId}/current", Name = nameof(GetCurrentState))]
 	public async Task<IActionResult> GetCurrentState(Guid planetId)
 	{
 		try
@@ -50,7 +50,7 @@ public class PlanetsController : ControllerBase
 		}
 	}
 
-	[HttpGet("initial")]
+	[HttpGet("initial", Name = nameof(GetAllInitialStates))]
 	public async Task<IActionResult> GetAllInitialStates()
 	{
 		var allPlanetsInitialStates = await _planetStore.GetPlanetsAsync();
@@ -58,7 +58,7 @@ public class PlanetsController : ControllerBase
 		return Ok(allPlanetsInitialStates.Select(ReadPlanetDto.FromPlanet));
 	}
 
-	[HttpPost]
+	[HttpPost(Name = nameof(AddPlanet))]
 	public async Task<IActionResult> AddPlanet([FromBody] CreatePlanetDto request)
 	{
 		var existingPlanet = await _planetStore.GetPlanetByIdAsync(request.Id);
@@ -77,6 +77,6 @@ public class PlanetsController : ControllerBase
 
 		await _planetStore.SavePlanetAsync(newPlanet);
 
-		return CreatedAtAction(nameof(GetCurrentState), new { planetId = newPlanet.Id }, newPlanet);
+		return CreatedAtAction(nameof(GetCurrentState), new { planetId = newPlanet.Id }, ReadPlanetDto.FromPlanet(newPlanet));
 	}
 }
