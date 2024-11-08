@@ -2,6 +2,8 @@
 
 public sealed record PlanetColonizedDomainEvent : IDomainEvent
 {
+	public string EventType => nameof(PlanetColonizedDomainEvent);
+
 	public Guid EntityId { get; init; }
 	public Guid Id { get; init; }
 	public DateTime OccurredOn { get; init; }
