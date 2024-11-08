@@ -71,11 +71,11 @@ public class EntityTests
 		var entity = new MockEntity();
 		var overrideUtcNow = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 		DateTimeProvider.SetUtcNow(() => overrideUtcNow);
-		var domainEvent1 = new MockDomainEvent();
+		var domainEvent1 = new MockDomainEvent { EntityId = entity.Id };
 
 		overrideUtcNow = new DateTime(2023, 1, 1, 13, 0, 0, DateTimeKind.Utc);
 		DateTimeProvider.SetUtcNow(() => overrideUtcNow);
-		var domainEvent2 = new MockDomainEvent();
+		var domainEvent2 = new MockDomainEvent { EntityId = entity.Id };
 
 		var historicalEvents = new List<IDomainEvent>
 			{
