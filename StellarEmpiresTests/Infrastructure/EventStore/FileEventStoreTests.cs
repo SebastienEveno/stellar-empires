@@ -15,7 +15,6 @@ public class FileEventStoreTests
 	public void Setup()
 	{
 		_baseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "EventStore");
-		Directory.CreateDirectory(_baseDirectory);
 
 		_eventStore = new FileEventStore();
 
@@ -45,6 +44,8 @@ public class FileEventStoreTests
 		await _eventStore.SaveEventAsync<MockEntity>(domainEvent);
 
 		// Assert
+		Assert.That(Directory.Exists(_baseDirectory), Is.True);
+
 		var filePath = Path.Combine(_baseDirectory, "events-mockentity.json");
 		Assert.That(File.Exists(filePath), Is.True);
 
