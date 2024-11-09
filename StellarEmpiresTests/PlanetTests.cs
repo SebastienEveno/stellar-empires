@@ -58,12 +58,11 @@ public class PlanetTests
 	public void Apply_WhenPlanetColonizedDomainEvent_ShouldUpdatePlanetState()
 	{
 		// Arrange
-		var colonizationTime = DateTimeProvider.UtcNow;
 		var domainEvent = new PlanetColonizedDomainEvent
 		{
 			EntityId = _planetId,
 			PlayerId = _playerId,
-			ColonizedAt = colonizationTime
+			OccurredOn = _utcNow
 		};
 
 		// Act
@@ -72,6 +71,6 @@ public class PlanetTests
 		// Assert
 		Assert.That(_planet.IsColonized, Is.True, "Planet should be marked as colonized.");
 		Assert.That(_planet.ColonizedBy, Is.EqualTo(_playerId), "PlayerId should match the ID of the colonizer.");
-		Assert.That(_planet.ColonizedAt, Is.EqualTo(colonizationTime), "Colonization time should match the event's timestamp.");
+		Assert.That(_planet.ColonizedAt, Is.EqualTo(_utcNow), "Colonization time should match the event's timestamp.");
 	}
 }

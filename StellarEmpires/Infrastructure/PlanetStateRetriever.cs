@@ -20,11 +20,13 @@ public class PlanetStateRetriever : IPlanetStateRetriever
     {
         var planet = await GetInitialStateAsync(planetId);
 
-        var events = await _eventStore.GetEventsAsync<Planet>(planet.Id);
+        var events = (await _eventStore.GetEventsAsync<Planet>(planet.Id))
+            .OrderBy(e => e.OccurredOn)
+            .ToList();
 
         foreach (var domainEvent in events)
         {
-            planet.Apply(domainEvent);  // Apply each event to update the state of the planet
+            planet.Apply(domainEvent);
         }
 
         return planet;

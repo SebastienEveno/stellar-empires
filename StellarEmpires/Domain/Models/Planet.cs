@@ -28,8 +28,7 @@ public class Planet : Entity
 		var colonizationEvent = new PlanetColonizedDomainEvent
 		{
 			EntityId = Id,
-			PlayerId = playerId,
-			ColonizedAt = DateTimeProvider.UtcNow
+			PlayerId = playerId
 		};
 
 		Apply(colonizationEvent);
@@ -43,7 +42,7 @@ public class Planet : Entity
 		{
 			IsColonized = true;
 			ColonizedBy = planetColonizedDomainEvent.PlayerId;
-			ColonizedAt = planetColonizedDomainEvent.ColonizedAt;
+			ColonizedAt = planetColonizedDomainEvent.OccurredOn;
 		}
 	}
 }
