@@ -82,8 +82,7 @@ public class PlanetStateRetrieverTests
 		var mockEvent = new PlanetColonizedDomainEvent
 		{
 			EntityId = planetId,
-			PlayerId = Guid.NewGuid(),
-			ColonizedAt = _utcNow
+			PlayerId = Guid.NewGuid()
 		};
 
 		_eventStore
