@@ -96,4 +96,49 @@ public class PlanetStateRetrieverTests
 		Assert.That(result.IsColonized, Is.True);
 		Assert.That(result.ColonizedBy, Is.EqualTo(mockEvent.PlayerId));
 	}
+
+	[Test]
+	public async Task GetCurrentStateAsync_ShouldApplyEventsInCorrectOrder()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var playerId = Guid.NewGuid();
+		var mockPlanet = new Planet(planetId, "Earth", false, null, null);
+
+		var event1 = new PlanetColonizedDomainEvent
+		{
+			EntityId = planetId,
+			PlayerId = playerId,
+			OccurredOn = _utcNow.AddDays(-2)  // Older event
+		};
+
+		var event2 = new PlanetColonizedDomainEvent
+		{
+			EntityId = planetId,
+			PlayerId = playerId,
+			OccurredOn = _utcNow.AddDays(-1)  // Newer event
+		};
+
+		var event3 = new PlanetColonizedDomainEvent
+		{
+			EntityId = planetId,
+			PlayerId = playerId,
+			OccurredOn = _utcNow  // Most recent event
+		};
+
+		_eventStore
+			.Setup(es => es.GetEventsAsync<Planet>(mockPlanet.Id))
+			.ReturnsAsync(new List<IDomainEvent> { event3, event2, event1 });
+
+		_planetStore
+			.Setup(store => store.GetPlanetByIdAsync(planetId))
+			.ReturnsAsync(mockPlanet);
+
+		// Act
+		var planet = await _planetStateRetriever.GetCurrentStateAsync(mockPlanet.Id);
+
+		// Assert
+		Assert.That(planet.ColonizedBy, Is.EqualTo(event3.PlayerId));
+		Assert.That(planet.ColonizedAt, Is.EqualTo(event3.OccurredOn));
+	}
 }
