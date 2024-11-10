@@ -5,26 +5,26 @@ namespace StellarEmpires.Infrastructure.EventStore;
 
 public class FileEventStore : IEventStore
 {
-	private readonly string BaseDirectory = Path.Combine("Infrastructure", "EventStore");
+	private readonly string BaseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "EventStore");
+	private readonly JsonSerializerOptions _jsonOptions;
+
+	public FileEventStore()
+	{
+		_jsonOptions = new JsonSerializerOptions
+		{
+			Converters = { new DomainEventJsonConverter() },
+			WriteIndented = true,
+			PropertyNameCaseInsensitive = true
+		};
+	}
 
 	public async Task SaveEventAsync<TEntity>(IDomainEvent domainEvent)
 	{
-		if (!Directory.Exists(BaseDirectory))
-		{
-			Directory.CreateDirectory(BaseDirectory);
-		}
-
 		var filePath = GetFilePathForEntity<TEntity>();
 		var allEvents = await LoadAllEventsAsync(filePath);
 		allEvents.Add(domainEvent);
 
-		var options = new JsonSerializerOptions
-		{
-			Converters = { new DomainEventJsonConverter() },
-			WriteIndented = true
-		};
-
-		var json = JsonSerializer.Serialize(allEvents, options);
+		var json = JsonSerializer.Serialize(allEvents, _jsonOptions);
 		await File.WriteAllTextAsync(filePath, json);
 	}
 
@@ -38,6 +38,11 @@ public class FileEventStore : IEventStore
 
 	private async Task<List<IDomainEvent>> LoadAllEventsAsync(string filePath)
 	{
+		if (!Directory.Exists(BaseDirectory))
+		{
+			Directory.CreateDirectory(BaseDirectory);
+		}
+
 		if (!File.Exists(filePath))
 		{
 			return new List<IDomainEvent>();
@@ -45,21 +50,15 @@ public class FileEventStore : IEventStore
 
 		var json = await File.ReadAllTextAsync(filePath);
 
-		var options = new JsonSerializerOptions
-		{
-			Converters = { new DomainEventJsonConverter() },
-			PropertyNameCaseInsensitive = true
-		};
-
-		return JsonSerializer.Deserialize<List<IDomainEvent>>(json, options) ?? new List<IDomainEvent>();
+		return JsonSerializer.Deserialize<List<IDomainEvent>>(json, _jsonOptions) ?? new List<IDomainEvent>();
 	}
 
 	private string GetFilePathForEntity<TEntity>()
 	{
-		var entityName = typeof(TEntity).Name.ToLower(); // e.g., "planet" or "building"
+		var entityName = typeof(TEntity).Name.ToLower();
 
 		var fileName = $"events-{entityName}.json";
 
-		return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, BaseDirectory, fileName);
+		return Path.Combine(BaseDirectory, fileName);
 	}
 }
