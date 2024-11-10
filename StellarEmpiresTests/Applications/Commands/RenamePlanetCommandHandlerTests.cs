@@ -12,7 +12,7 @@ namespace StellarEmpires.Tests.Applications.Commands;
 public class RenamePlanetCommandHandlerTests
 {
 	private RenamePlanetCommandHandler _handler;
-	
+
 	private Mock<IPlanetStateRetriever> _planetStateRetrieverMock;
 	private Mock<IEventStore> _eventStoreMock;
 
@@ -49,11 +49,11 @@ public class RenamePlanetCommandHandlerTests
 			.ReturnsAsync(planet);
 
 		var newPlanetName = "New Planet Name";
-		var renameCommand = new RenamePlanetCommand 
-		{ 
-			PlayerId = colonizerId, 
-			PlanetId = planetId, 
-			PlanetName = newPlanetName 
+		var renameCommand = new RenamePlanetCommand
+		{
+			PlayerId = colonizerId,
+			PlanetId = planetId,
+			PlanetName = newPlanetName
 		};
 
 		// Act
@@ -74,11 +74,11 @@ public class RenamePlanetCommandHandlerTests
 		// Arrange
 		var colonizerId = Guid.NewGuid();
 		var planetId = Guid.NewGuid();
-		var renameCommand = new RenamePlanetCommand 
-		{ 
-			PlayerId = colonizerId, 
-			PlanetId = planetId, 
-			PlanetName = "New Planet Name" 
+		var renameCommand = new RenamePlanetCommand
+		{
+			PlayerId = colonizerId,
+			PlanetId = planetId,
+			PlanetName = "New Planet Name"
 		};
 
 		_planetStateRetrieverMock

@@ -12,7 +12,7 @@ namespace StellarEmpires.Tests.Applications.Commands;
 public class ColonizePlanetCommandHandlerTests
 {
 	private ColonizePlanetCommandHandler _handler;
-	
+
 	private Mock<IPlanetStateRetriever> _planetStateRetrieverMock;
 	private Mock<IEventStore> _eventStoreMock;
 
@@ -47,7 +47,7 @@ public class ColonizePlanetCommandHandlerTests
 		_planetStateRetrieverMock
 			.Setup(r => r.GetCurrentStateAsync(planetId))
 			.ReturnsAsync(planet);
-		
+
 		var command = new ColonizePlanetCommand { PlanetId = planetId, PlayerId = playerId };
 
 		// Act

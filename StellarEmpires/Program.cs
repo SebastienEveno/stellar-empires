@@ -25,6 +25,10 @@ builder.Services.AddScoped<IPlanetStore, FilePlanetStore>();
 builder.Services.AddScoped<IPlanetStateRetriever, PlanetStateRetriever>();
 builder.Services.AddScoped<IColonizePlanetCommandHandler, ColonizePlanetCommandHandler>();
 builder.Services.AddScoped<IRenamePlanetCommandHandler, RenamePlanetCommandHandler>();
+//builder.Services.AddHostedService<ResourcesBackgroundService>();
+//builder.Services.AddSingleton<IMinesService, MinesService>();
+//builder.Services.AddSingleton<IResourcesService, ResourcesService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -35,7 +35,7 @@ public class PlanetsController : ControllerBase
 		try
 		{
 			var initialState = await _planetStateRetriever.GetInitialStateAsync(planetId);
-			
+
 			return Ok(ReadPlanetDto.FromPlanet(initialState));
 		}
 		catch (InvalidOperationException ex)
@@ -50,7 +50,7 @@ public class PlanetsController : ControllerBase
 		try
 		{
 			var currentState = await _planetStateRetriever.GetCurrentStateAsync(planetId);
-			
+
 			return Ok(ReadPlanetDto.FromPlanet(currentState));
 		}
 		catch (InvalidOperationException ex)
@@ -63,7 +63,7 @@ public class PlanetsController : ControllerBase
 	public async Task<IActionResult> GetAllInitialStates()
 	{
 		var allPlanetsInitialStates = await _planetStore.GetPlanetsAsync();
-		
+
 		return Ok(allPlanetsInitialStates.Select(ReadPlanetDto.FromPlanet));
 	}
 
@@ -95,9 +95,9 @@ public class PlanetsController : ControllerBase
 		try
 		{
 			var command = new ColonizePlanetCommand { PlanetId = planetId, PlayerId = request.PlayerId };
-			
+
 			await _colonizePlanetCommandHandler.ColonizePlanetAsync(command);
-			
+
 			return Ok("Planet successfully colonized.");
 		}
 		catch (InvalidOperationException ex) when (ex.Message == "Planet not found.")
@@ -119,11 +119,11 @@ public class PlanetsController : ControllerBase
 	{
 		try
 		{
-			var command = new RenamePlanetCommand 
-			{ 
-				PlanetId = planetId, 
-				PlayerId = request.PlayerId, 
-				PlanetName = request.NewName 
+			var command = new RenamePlanetCommand
+			{
+				PlanetId = planetId,
+				PlayerId = request.PlayerId,
+				PlanetName = request.NewName
 			};
 
 			await _renamePlanetCommandHandler.RenamePlanetAsync(command);
