@@ -3,6 +3,7 @@ using StellarEmpires.Domain.Services;
 using StellarEmpires.Infrastructure;
 using StellarEmpires.Infrastructure.EventStore;
 using StellarEmpires.Infrastructure.PlanetStore;
+using System.IO.Abstractions;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 
+builder.Services.AddScoped<IFileSystem, FileSystem>();
 builder.Services.AddScoped<IEventStore, FileEventStore>();
 builder.Services.AddScoped<IPlanetStore, FilePlanetStore>();
 builder.Services.AddScoped<IPlanetStateRetriever, PlanetStateRetriever>();
