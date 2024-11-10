@@ -1,15 +1,19 @@
 ﻿using StellarEmpires.Events;
+using System.IO.Abstractions;
 using System.Text.Json;
 
 namespace StellarEmpires.Infrastructure.EventStore;
 
 public class FileEventStore : IEventStore
 {
-	private readonly string BaseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "EventStore");
+	private readonly IFileSystem _fileSystem;
+	private readonly string BaseDirectory;
 	private readonly JsonSerializerOptions _jsonOptions;
 
-	public FileEventStore()
+	public FileEventStore(IFileSystem fileSystem)
 	{
+		_fileSystem = fileSystem;
+		BaseDirectory = _fileSystem.Path.Combine("Infrastructure", "EventStore");
 		_jsonOptions = new JsonSerializerOptions
 		{
 			Converters = { new DomainEventJsonConverter() },
@@ -25,7 +29,7 @@ public class FileEventStore : IEventStore
 		allEvents.Add(domainEvent);
 
 		var json = JsonSerializer.Serialize(allEvents, _jsonOptions);
-		await File.WriteAllTextAsync(filePath, json);
+		await _fileSystem.File.WriteAllTextAsync(filePath, json);
 	}
 
 	public async Task<IEnumerable<IDomainEvent>> GetEventsAsync<TEntity>(Guid entityId)
@@ -38,17 +42,17 @@ public class FileEventStore : IEventStore
 
 	private async Task<List<IDomainEvent>> LoadAllEventsAsync(string filePath)
 	{
-		if (!Directory.Exists(BaseDirectory))
+		if (!_fileSystem.Directory.Exists(BaseDirectory))
 		{
-			Directory.CreateDirectory(BaseDirectory);
+			_fileSystem.Directory.CreateDirectory(BaseDirectory);
 		}
 
-		if (!File.Exists(filePath))
+		if (!_fileSystem.File.Exists(filePath))
 		{
 			return new List<IDomainEvent>();
 		}
 
-		var json = await File.ReadAllTextAsync(filePath);
+		var json = await _fileSystem.File.ReadAllTextAsync(filePath);
 
 		return JsonSerializer.Deserialize<List<IDomainEvent>>(json, _jsonOptions) ?? new List<IDomainEvent>();
 	}
@@ -59,6 +63,6 @@ public class FileEventStore : IEventStore
 
 		var fileName = $"events-{entityName}.json";
 
-		return Path.Combine(BaseDirectory, fileName);
+		return _fileSystem.Path.Combine(BaseDirectory, fileName);
 	}
 }
