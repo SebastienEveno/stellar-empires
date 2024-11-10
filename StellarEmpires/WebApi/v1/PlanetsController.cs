@@ -87,11 +87,11 @@ public class PlanetsController : ControllerBase
 	}
 
 	[HttpPost("{planetId}/colonize")]
-	public async Task<IActionResult> ColonizePlanet(Guid planetId, [FromBody] Guid playerId)
+	public async Task<IActionResult> ColonizePlanet(Guid planetId, [FromBody] ColonizePlanetRequest request)
 	{
 		try
 		{
-			var command = new ColonizePlanetCommand { PlanetId = planetId, PlayerId = playerId };
+			var command = new ColonizePlanetCommand { PlanetId = planetId, PlayerId = request.PlayerId };
 			
 			await _colonizePlanetCommandHandler.ColonizePlanetAsync(command);
 			
