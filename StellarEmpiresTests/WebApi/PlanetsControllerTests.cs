@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
+using StellarEmpires.Application.Commands;
 using StellarEmpires.Domain.Models;
 using StellarEmpires.Domain.Services;
 using StellarEmpires.Infrastructure.PlanetStore;
@@ -13,6 +14,7 @@ public class PlanetsControllerTests
 {
 	private Mock<IPlanetStateRetriever> _planetStateRetriever;
 	private Mock<IPlanetStore> _planetStore;
+	private Mock<IColonizePlanetCommandHandler> _colonizePlanetCommandHandler;
 	private PlanetsController _controller;
 
 	[SetUp]
@@ -20,8 +22,8 @@ public class PlanetsControllerTests
 	{
 		_planetStateRetriever = new Mock<IPlanetStateRetriever>();
 		_planetStore = new Mock<IPlanetStore>();
-
-		_controller = new PlanetsController(_planetStateRetriever.Object, _planetStore.Object);
+		_colonizePlanetCommandHandler = new Mock<IColonizePlanetCommandHandler>();
+		_controller = new PlanetsController(_planetStateRetriever.Object, _planetStore.Object, _colonizePlanetCommandHandler.Object);
 	}
 
 	[Test]
@@ -228,5 +230,85 @@ public class PlanetsControllerTests
 		Assert.That(createdResult, Is.Not.Null);
 		Assert.That(createdResult.RouteValues["planetId"], Is.EqualTo(createPlanetDto.Id));
 		Assert.That(createdResult.Value, Is.InstanceOf<ReadPlanetDto>());
+	}
+
+	[Test]
+	public async Task ColonizePlanet_ShouldReturnOk_WhenPlanetIsSuccessfullyColonized()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var playerId = Guid.NewGuid();
+
+		_colonizePlanetCommandHandler
+			.Setup(h => h.ColonizePlanetAsync(It.IsAny<ColonizePlanetCommand>()))
+			.Returns(Task.CompletedTask);
+
+		// Act
+		var result = await _controller.ColonizePlanet(planetId, playerId) as OkObjectResult;
+
+		// Assert
+		Assert.That(result, Is.Not.Null);
+		Assert.That(result!.StatusCode, Is.EqualTo(200));
+		Assert.That(result.Value, Is.EqualTo("Planet successfully colonized."));
+	}
+
+	[Test]
+	public async Task ColonizePlanet_ShouldReturnNotFound_WhenPlanetIsNotFound()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var playerId = Guid.NewGuid();
+
+		_colonizePlanetCommandHandler
+			.Setup(h => h.ColonizePlanetAsync(It.IsAny<ColonizePlanetCommand>()))
+			.ThrowsAsync(new InvalidOperationException("Planet not found."));
+
+		// Act
+		var result = await _controller.ColonizePlanet(planetId, playerId) as NotFoundObjectResult;
+
+		// Assert
+		Assert.That(result, Is.Not.Null);
+		Assert.That(result!.StatusCode, Is.EqualTo(404));
+		Assert.That(result.Value, Is.EqualTo("Planet not found."));
+	}
+
+	[Test]
+	public async Task ColonizePlanet_ShouldReturnConflict_WhenPlanetIsAlreadyColonized()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var playerId = Guid.NewGuid();
+
+		_colonizePlanetCommandHandler
+			.Setup(h => h.ColonizePlanetAsync(It.IsAny<ColonizePlanetCommand>()))
+			.ThrowsAsync(new InvalidOperationException("Planet is already colonized."));
+
+		// Act
+		var result = await _controller.ColonizePlanet(planetId, playerId) as ConflictObjectResult;
+
+		// Assert
+		Assert.That(result, Is.Not.Null);
+		Assert.That(result!.StatusCode, Is.EqualTo(409));
+		Assert.That(result.Value, Is.EqualTo("Planet is already colonized."));
+	}
+
+	[Test]
+	public async Task ColonizePlanet_ShouldReturnStatusCode500_WhenAnUnexpectedErrorOccurs()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var playerId = Guid.NewGuid();
+
+		_colonizePlanetCommandHandler
+			.Setup(h => h.ColonizePlanetAsync(It.IsAny<ColonizePlanetCommand>()))
+			.ThrowsAsync(new Exception("Unexpected error."));
+
+		// Act
+		var result = await _controller.ColonizePlanet(planetId, playerId) as ObjectResult;
+
+		// Assert
+		Assert.That(result, Is.Not.Null);
+		Assert.That(result!.StatusCode, Is.EqualTo(500));
+		Assert.That(result.Value, Is.EqualTo("Unexpected error."));
 	}
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StellarEmpires.Application.Commands;
 using StellarEmpires.Domain.Models;
 using StellarEmpires.Domain.Services;
 using StellarEmpires.Infrastructure.PlanetStore;
@@ -13,11 +14,16 @@ public class PlanetsController : ControllerBase
 {
 	private readonly IPlanetStateRetriever _planetStateRetriever;
 	private readonly IPlanetStore _planetStore;
+	private readonly IColonizePlanetCommandHandler _colonizePlanetCommandHandler;
 
-	public PlanetsController(IPlanetStateRetriever planetStateRetriever, IPlanetStore planetStore)
+	public PlanetsController(
+		IPlanetStateRetriever planetStateRetriever, 
+		IPlanetStore planetStore, 
+		IColonizePlanetCommandHandler colonizePlanetCommandHandler)
 	{
 		_planetStateRetriever = planetStateRetriever;
 		_planetStore = planetStore;
+		_colonizePlanetCommandHandler = colonizePlanetCommandHandler;
 	}
 
 	[HttpGet("{planetId}/initial", Name = nameof(GetInitialState))]
@@ -78,5 +84,30 @@ public class PlanetsController : ControllerBase
 		await _planetStore.SavePlanetAsync(newPlanet);
 
 		return CreatedAtAction(nameof(GetCurrentState), new { planetId = newPlanet.Id }, ReadPlanetDto.FromPlanet(newPlanet));
+	}
+
+	[HttpPost("{planetId}/colonize")]
+	public async Task<IActionResult> ColonizePlanet(Guid planetId, [FromBody] Guid playerId)
+	{
+		try
+		{
+			var command = new ColonizePlanetCommand { PlanetId = planetId, PlayerId = playerId };
+			
+			await _colonizePlanetCommandHandler.ColonizePlanetAsync(command);
+			
+			return Ok("Planet successfully colonized.");
+		}
+		catch (InvalidOperationException ex) when (ex.Message == "Planet not found.")
+		{
+			return NotFound(ex.Message);
+		}
+		catch (InvalidOperationException ex) when (ex.Message == "Planet is already colonized.")
+		{
+			return Conflict(ex.Message);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, ex.Message);
+		}
 	}
 }

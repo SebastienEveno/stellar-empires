@@ -1,3 +1,4 @@
+using StellarEmpires.Application.Commands;
 using StellarEmpires.Domain.Services;
 using StellarEmpires.Infrastructure;
 using StellarEmpires.Infrastructure.EventStore;
@@ -20,6 +21,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IEventStore, FileEventStore>();
 builder.Services.AddScoped<IPlanetStore, FilePlanetStore>();
 builder.Services.AddScoped<IPlanetStateRetriever, PlanetStateRetriever>();
+builder.Services.AddScoped<IColonizePlanetCommandHandler, ColonizePlanetCommandHandler>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
