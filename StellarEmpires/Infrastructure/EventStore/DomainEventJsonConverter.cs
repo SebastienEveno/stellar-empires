@@ -9,7 +9,8 @@ public class DomainEventJsonConverter : JsonConverter<IDomainEvent>
 	private readonly Dictionary<string, Type> _eventTypeMap = new()
 	{
 		{ nameof(MockDomainEvent), typeof(MockDomainEvent) },
-		{ nameof(PlanetColonizedDomainEvent), typeof(PlanetColonizedDomainEvent) }
+		{ nameof(PlanetColonizedDomainEvent), typeof(PlanetColonizedDomainEvent) },
+		{ nameof(PlanetRenamedDomainEvent), typeof(PlanetRenamedDomainEvent) }
 	};
 
 

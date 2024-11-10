@@ -1,5 +1,4 @@
 ﻿using StellarEmpires.Events;
-using StellarEmpires.Helpers;
 
 namespace StellarEmpires.Domain.Models;
 
@@ -36,6 +35,24 @@ public class Planet : Entity
 		AddDomainEvent(colonizationEvent);
 	}
 
+	public void Rename(string newName)
+	{
+		if (string.IsNullOrEmpty(newName))
+		{
+			throw new InvalidOperationException("New name is either null or empty.");
+		}
+
+		var renameEvent = new PlanetRenamedDomainEvent
+		{
+			EntityId = Id,
+			PlanetName = newName
+		};
+
+		Apply(renameEvent);
+
+		AddDomainEvent(renameEvent);
+	}
+
 	public override void Apply(IDomainEvent @event)
 	{
 		if (@event is PlanetColonizedDomainEvent planetColonizedDomainEvent)
@@ -43,6 +60,11 @@ public class Planet : Entity
 			IsColonized = true;
 			ColonizedBy = planetColonizedDomainEvent.PlayerId;
 			ColonizedAt = planetColonizedDomainEvent.OccurredOn;
+		}
+
+		if (@event is PlanetRenamedDomainEvent planetRenamedDomainEvent)
+		{
+			Name = planetRenamedDomainEvent.PlanetName;
 		}
 	}
 }
