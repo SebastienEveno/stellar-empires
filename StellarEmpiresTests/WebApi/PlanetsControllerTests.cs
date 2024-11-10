@@ -327,11 +327,12 @@ public class PlanetsControllerTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var request = new RenamePlanetRequest { NewName = "New Planet Name" };
-		var command = new RenamePlanetCommand { PlanetId = planetId, PlanetName = request.NewName };
+		var playerId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { NewName = "New Planet Name", PlayerId = playerId };
+		var command = new RenamePlanetCommand { PlayerId = playerId, PlanetId = planetId, PlanetName = request.NewName };
 
 		_renamePlanetCommandHandler
-			.Setup(handler => handler.RenamePlanetAsync(It.Is<RenamePlanetCommand>(c => c.PlanetId == planetId && c.PlanetName == request.NewName)))
+			.Setup(handler => handler.RenamePlanetAsync(It.Is<RenamePlanetCommand>(c => c.PlayerId == playerId && c.PlanetId == planetId && c.PlanetName == request.NewName)))
 			.Returns(Task.CompletedTask);
 
 		// Act
@@ -348,7 +349,8 @@ public class PlanetsControllerTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var request = new RenamePlanetRequest { NewName = "New Planet Name" };
+		var playerId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { PlayerId = playerId, NewName = "New Planet Name" };
 
 		_renamePlanetCommandHandler
 			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
@@ -368,7 +370,8 @@ public class PlanetsControllerTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var request = new RenamePlanetRequest { NewName = null };  // Invalid name
+		var playerId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { PlayerId = playerId, NewName = null };  // Invalid name
 
 		_renamePlanetCommandHandler
 			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
@@ -388,7 +391,8 @@ public class PlanetsControllerTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var request = new RenamePlanetRequest { NewName = "" };  // Invalid name
+		var playerId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { PlayerId = playerId, NewName = "" };
 
 		_renamePlanetCommandHandler
 			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
@@ -404,11 +408,33 @@ public class PlanetsControllerTests
 	}
 
 	[Test]
+	public async Task RenamePlanet_ShouldReturnBadRequest_WhenPlayerIsNotThePlanetColonizer()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var playerId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { PlayerId = playerId, NewName = "New Planet Name" };
+
+		_renamePlanetCommandHandler
+			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
+			.ThrowsAsync(new InvalidOperationException("Only the player who colonized the planet can rename it."));
+
+		// Act
+		var result = await _controller.RenamePlanet(planetId, request);
+
+		// Assert
+		Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+		var badRequestResult = result as BadRequestObjectResult;
+		Assert.That(badRequestResult.Value, Is.EqualTo("Only the player who colonized the planet can rename it."));
+	}
+
+	[Test]
 	public async Task RenamePlanet_ShouldReturnInternalServerError_WhenUnexpectedExceptionOccurs()
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var request = new RenamePlanetRequest { NewName = "New Planet Name" };
+		var playerId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { PlayerId = playerId, NewName = "New Planet Name" };
 
 		_renamePlanetCommandHandler
 			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))

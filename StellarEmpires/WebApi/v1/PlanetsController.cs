@@ -119,7 +119,12 @@ public class PlanetsController : ControllerBase
 	{
 		try
 		{
-			var command = new RenamePlanetCommand { PlanetId = planetId, PlanetName = request.NewName };
+			var command = new RenamePlanetCommand 
+			{ 
+				PlanetId = planetId, 
+				PlayerId = request.PlayerId, 
+				PlanetName = request.NewName 
+			};
 
 			await _renamePlanetCommandHandler.RenamePlanetAsync(command);
 
@@ -130,6 +135,10 @@ public class PlanetsController : ControllerBase
 			return NotFound(ex.Message);
 		}
 		catch (InvalidOperationException ex) when (ex.Message == "New name is either null or empty.")
+		{
+			return BadRequest(ex.Message);
+		}
+		catch (InvalidOperationException ex) when (ex.Message == "Only the player who colonized the planet can rename it.")
 		{
 			return BadRequest(ex.Message);
 		}

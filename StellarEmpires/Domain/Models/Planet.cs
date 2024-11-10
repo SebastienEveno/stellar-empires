@@ -35,8 +35,13 @@ public class Planet : Entity
 		AddDomainEvent(colonizationEvent);
 	}
 
-	public void Rename(string newName)
+	public void Rename(string newName, Guid playerId)
 	{
+		if (!IsColonized || playerId != ColonizedBy)
+		{
+			throw new InvalidOperationException("Only the player who colonized the planet can rename it.");
+		}
+
 		if (string.IsNullOrEmpty(newName))
 		{
 			throw new InvalidOperationException("New name is either null or empty.");

@@ -40,15 +40,21 @@ public class RenamePlanetCommandHandlerTests
 	public async Task RenamePlanetAsync_ShouldRenamePlanetAndSaveEvent_WhenPlanetExists()
 	{
 		// Arrange
+		var colonizerId = Guid.NewGuid();
 		var planetId = Guid.NewGuid();
-		var planet = new Planet(planetId, "Test Planet", false, null, null);
+		var planet = new Planet(planetId, "Test Planet", true, colonizerId, _utcNow);
 
 		_planetStateRetrieverMock
 			.Setup(x => x.GetCurrentStateAsync(planetId))
 			.ReturnsAsync(planet);
 
 		var newPlanetName = "New Planet Name";
-		var renameCommand = new RenamePlanetCommand { PlanetId = planetId, PlanetName = newPlanetName };
+		var renameCommand = new RenamePlanetCommand 
+		{ 
+			PlayerId = colonizerId, 
+			PlanetId = planetId, 
+			PlanetName = newPlanetName 
+		};
 
 		// Act
 		await _handler.RenamePlanetAsync(renameCommand);
@@ -66,8 +72,14 @@ public class RenamePlanetCommandHandlerTests
 	public void RenamePlanetAsync_ShouldThrowInvalidOperationException_WhenPlanetDoesNotExist()
 	{
 		// Arrange
+		var colonizerId = Guid.NewGuid();
 		var planetId = Guid.NewGuid();
-		var renameCommand = new RenamePlanetCommand { PlanetId = planetId, PlanetName = "New Planet Name" };
+		var renameCommand = new RenamePlanetCommand 
+		{ 
+			PlayerId = colonizerId, 
+			PlanetId = planetId, 
+			PlanetName = "New Planet Name" 
+		};
 
 		_planetStateRetrieverMock
 			.Setup(x => x.GetCurrentStateAsync(planetId))
@@ -76,6 +88,31 @@ public class RenamePlanetCommandHandlerTests
 		// Act & Assert
 		var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _handler.RenamePlanetAsync(renameCommand));
 		Assert.That(ex.Message, Is.EqualTo("Planet not found."));
+		_eventStoreMock.Verify(x => x.SaveEventAsync<Planet>(It.IsAny<IDomainEvent>()), Times.Never);
+	}
+
+	[Test]
+	public void RenamePlanetAsync_ShouldThrowInvalidOperationException_WhenPlayerIsNotColonizer()
+	{
+		// Arrange
+		var colonizerId = Guid.NewGuid();
+		var playerId = Guid.NewGuid();
+		var planetId = Guid.NewGuid();
+		var renameCommand = new RenamePlanetCommand
+		{
+			PlayerId = playerId,
+			PlanetId = planetId,
+			PlanetName = "New Planet Name"
+		};
+
+		var planet = new Planet(planetId, "Test Planet", true, colonizerId, _utcNow);
+		_planetStateRetrieverMock
+			.Setup(x => x.GetCurrentStateAsync(planetId))
+			.ReturnsAsync(planet);
+
+		// Act & Assert
+		var ex = Assert.ThrowsAsync<InvalidOperationException>(() => _handler.RenamePlanetAsync(renameCommand));
+		Assert.That(ex.Message, Is.EqualTo("Only the player who colonized the planet can rename it."));
 		_eventStoreMock.Verify(x => x.SaveEventAsync<Planet>(It.IsAny<IDomainEvent>()), Times.Never);
 	}
 }
