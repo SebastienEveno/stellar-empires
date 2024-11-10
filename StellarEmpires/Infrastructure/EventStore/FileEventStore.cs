@@ -18,7 +18,13 @@ public class FileEventStore : IEventStore
 		var allEvents = await LoadAllEventsAsync(filePath);
 		allEvents.Add(domainEvent);
 
-		var json = JsonSerializer.Serialize(allEvents, new JsonSerializerOptions { WriteIndented = true });
+		var options = new JsonSerializerOptions
+		{
+			Converters = { new DomainEventJsonConverter() },
+			WriteIndented = true
+		};
+
+		var json = JsonSerializer.Serialize(allEvents, options);
 		await File.WriteAllTextAsync(filePath, json);
 	}
 
