@@ -25,7 +25,7 @@ public class RenamePlanetCommandHandler : IRenamePlanetCommandHandler
 			throw new InvalidOperationException("Planet not found.");
 		}
 
-		planet.Rename(command.PlanetName);
+		planet.Rename(command.PlanetName, command.PlayerId);
 
 		await _eventStore.SaveEventAsync<Planet>(planet.DomainEvents.Last());
 	}
