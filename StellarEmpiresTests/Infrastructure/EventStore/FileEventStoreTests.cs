@@ -1,4 +1,5 @@
-﻿using StellarEmpires.Events;
+﻿using StellarEmpires.Domain.Models;
+using StellarEmpires.Events;
 using StellarEmpires.Helpers;
 using StellarEmpires.Infrastructure.EventStore;
 using StellarEmpires.Tests.Mocks;
@@ -11,6 +12,8 @@ public class FileEventStoreTests
 	private FileEventStore _eventStore;
 	private string _baseDirectory;
 
+	private DateTime _utcNow;
+
 	[SetUp]
 	public void Setup()
 	{
@@ -18,7 +21,8 @@ public class FileEventStoreTests
 
 		_eventStore = new FileEventStore();
 
-		DateTimeProvider.SetUtcNow(() => new DateTime(2024, 11, 7, 0, 0, 0, DateTimeKind.Utc));
+		_utcNow = new DateTime(2024, 11, 7, 0, 0, 0, DateTimeKind.Utc);
+		DateTimeProvider.SetUtcNow(() => _utcNow);
 	}
 
 	[TearDown]
@@ -55,6 +59,33 @@ public class FileEventStoreTests
 	}
 
 	[Test]
+	public async Task SaveEventAsync_ShouldSerializeAndSavePlanetColonizedDomainEventCorrectly()
+	{
+		// Arrange
+		var domainEvent = new PlanetColonizedDomainEvent
+		{
+			EntityId = Guid.NewGuid(),
+			PlayerId = Guid.NewGuid()
+		};
+
+		// Act
+		await _eventStore.SaveEventAsync<Planet>(domainEvent);
+
+		// Assert
+		var filePath = Path.Combine(_baseDirectory, "events-planet.json");
+		Assert.That(File.Exists(filePath), Is.True, "The event file should be created.");
+
+		var fileContent = await File.ReadAllTextAsync(filePath);
+
+		// Check serialization for specific properties
+		var expectedEventType = nameof(PlanetColonizedDomainEvent);
+		Assert.That(fileContent, Does.Contain($"\"EventType\": \"{expectedEventType}\""), "EventType should be serialized correctly.");
+		Assert.That(fileContent, Does.Contain("\"OccurredOn\": \"2024-11-07T00:00:00Z\""), "OccurredOn should be serialized correctly.");
+		Assert.That(fileContent, Does.Contain($"\"EntityId\": \"{domainEvent.EntityId}\""), "EntityId should be serialized correctly.");
+		Assert.That(fileContent, Does.Contain($"\"PlayerId\": \"{domainEvent.PlayerId}\""), "PlayerId should be serialized correctly.");
+	}
+
+	[Test]
 	public async Task GetEventsAsync_ShouldReturnSavedEvents()
 	{
 		// Arrange
@@ -79,7 +110,7 @@ public class FileEventStoreTests
 		{
 			Assert.That(retrievedEvent, Is.TypeOf<MockDomainEvent>());
 			Assert.That(((MockDomainEvent)retrievedEvent).EntityId, Is.EqualTo(entityId));
-			Assert.That(((MockDomainEvent)retrievedEvent).OccurredOn, Is.EqualTo(new DateTime(2024, 11, 7, 0, 0, 0, DateTimeKind.Utc)));
+			Assert.That(((MockDomainEvent)retrievedEvent).OccurredOn, Is.EqualTo(_utcNow));
 		}
 	}
 
@@ -95,6 +126,6 @@ public class FileEventStoreTests
 		mockEntity.Apply(domainEvent);
 
 		// Assert
-		Assert.That(mockEntity.LastEventOccurred, Is.EqualTo(new DateTime(2024, 11, 7, 0, 0, 0, DateTimeKind.Utc)));
+		Assert.That(mockEntity.LastEventOccurred, Is.EqualTo(_utcNow));
 	}
 }
