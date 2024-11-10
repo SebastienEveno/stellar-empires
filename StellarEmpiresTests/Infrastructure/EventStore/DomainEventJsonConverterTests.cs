@@ -37,6 +37,30 @@ public class DomainEventJsonConverterTests
 	}
 
 	[Test]
+	public void Serialize_ShouldSerializePlanetColonizedDomainEventCorrectly()
+	{
+		// Arrange
+		var occurredOn = new DateTime(2024, 11, 7, 0, 0, 0, DateTimeKind.Utc);
+		DateTimeProvider.SetUtcNow(() => occurredOn);
+
+		var domainEvent = new PlanetColonizedDomainEvent
+		{
+			EntityId = Guid.NewGuid(),
+			PlayerId = Guid.NewGuid()
+		};
+
+		// Act
+		var json = JsonSerializer.Serialize(domainEvent, _options);
+
+		// Assert
+		var expectedJsonFragment = $"\"EventType\":\"{nameof(PlanetColonizedDomainEvent)}\"";
+		Assert.That(json, Does.Contain(expectedJsonFragment), "EventType not serialized correctly");
+		Assert.That(json, Does.Contain("\"OccurredOn\":\"2024-11-07T00:00:00Z\""), "OccurredOn not serialized correctly");
+		Assert.That(json, Does.Contain($"\"EntityId\":\"{domainEvent.EntityId}\""), "EntityId not serialized correctly");
+		Assert.That(json, Does.Contain($"\"PlayerId\":\"{domainEvent.PlayerId}\""), "PlayerId not serialized correctly");
+	}
+
+	[Test]
 	public void Deserialize_ShouldReturnMockDomainEvent_ForValidJson()
 	{
 		// Arrange

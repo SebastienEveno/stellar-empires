@@ -41,6 +41,8 @@ public class DomainEventJsonConverter : JsonConverter<IDomainEvent>
 
 	public override void Write(Utf8JsonWriter writer, IDomainEvent value, JsonSerializerOptions options)
 	{
-		JsonSerializer.Serialize(writer, (object)value, options);
+		var eventType = value.GetType();
+
+		JsonSerializer.Serialize(writer, value, eventType, options);
 	}
 }
