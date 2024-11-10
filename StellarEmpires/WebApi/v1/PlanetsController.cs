@@ -15,15 +15,18 @@ public class PlanetsController : ControllerBase
 	private readonly IPlanetStateRetriever _planetStateRetriever;
 	private readonly IPlanetStore _planetStore;
 	private readonly IColonizePlanetCommandHandler _colonizePlanetCommandHandler;
+	private readonly IRenamePlanetCommandHandler _renamePlanetCommandHandler;
 
 	public PlanetsController(
-		IPlanetStateRetriever planetStateRetriever, 
-		IPlanetStore planetStore, 
-		IColonizePlanetCommandHandler colonizePlanetCommandHandler)
+		IPlanetStateRetriever planetStateRetriever,
+		IPlanetStore planetStore,
+		IColonizePlanetCommandHandler colonizePlanetCommandHandler,
+		IRenamePlanetCommandHandler renamePlanetCommandHandler)
 	{
 		_planetStateRetriever = planetStateRetriever;
 		_planetStore = planetStore;
 		_colonizePlanetCommandHandler = colonizePlanetCommandHandler;
+		_renamePlanetCommandHandler = renamePlanetCommandHandler;
 	}
 
 	[HttpGet("{planetId}/initial", Name = nameof(GetInitialState))]
@@ -104,6 +107,31 @@ public class PlanetsController : ControllerBase
 		catch (InvalidOperationException ex) when (ex.Message == "Planet is already colonized.")
 		{
 			return Conflict(ex.Message);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, ex.Message);
+		}
+	}
+
+	[HttpPost("{planetId}/rename")]
+	public async Task<IActionResult> RenamePlanet(Guid planetId, [FromBody] RenamePlanetRequest request)
+	{
+		try
+		{
+			var command = new RenamePlanetCommand { PlanetId = planetId, PlanetName = request.NewName };
+
+			await _renamePlanetCommandHandler.RenamePlanetAsync(command);
+
+			return Ok("Planet successfully renamed.");
+		}
+		catch (InvalidOperationException ex) when (ex.Message == "Planet not found.")
+		{
+			return NotFound(ex.Message);
+		}
+		catch (InvalidOperationException ex) when (ex.Message == "New name is either null or empty.")
+		{
+			return BadRequest(ex.Message);
 		}
 		catch (Exception ex)
 		{
