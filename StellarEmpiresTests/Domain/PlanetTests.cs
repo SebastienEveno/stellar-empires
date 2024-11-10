@@ -75,15 +75,45 @@ public class PlanetTests
     }
 
 	[Test]
+	public void Rename_ShouldThrowException_WhenPlanetNotColonized()
+	{
+		// Arrange
+		var planet = new Planet(Guid.NewGuid(), "Uncolonized Planet", false, null, null);
+		var playerId = Guid.NewGuid();
+
+		// Act & Assert
+		Assert.That(
+			() => planet.Rename("New Planet Name", playerId),
+			Throws.InvalidOperationException.With.Message.EqualTo("Only the player who colonized the planet can rename it.")
+		);
+	}
+
+	[Test]
+	public void Rename_ShouldThrowException_WhenPlayerIsNotColonizer()
+	{
+		// Arrange
+		var colonizerId = Guid.NewGuid();
+		var otherPlayerId = Guid.NewGuid();
+		var planet = new Planet(Guid.NewGuid(), "Colonized Planet", true, colonizerId, _utcNow);
+
+		// Act & Assert
+		Assert.That(
+			() => planet.Rename("New Planet Name", otherPlayerId),
+			Throws.InvalidOperationException.With.Message.EqualTo("Only the player who colonized the planet can rename it.")
+		);
+	}
+
+	[Test]
 	public void Rename_ShouldSetNewName_WhenValidNameProvided()
 	{
 		// Arrange
+		var colonizerId = Guid.NewGuid();
 		var planetId = Guid.NewGuid();
-		var planet = new Planet(planetId, "APlanet", false, null, null);
+		var planet = new Planet(planetId, "APlanet", true, colonizerId, _utcNow);
 		var newName = "New Planet Name";
 
 		// Act
-		planet.Rename(newName);
+		planet.Rename(newName, colonizerId);
 
 		// Assert
 		Assert.That(planet.Name, Is.EqualTo(newName));
@@ -98,11 +128,12 @@ public class PlanetTests
 	public void Rename_ShouldThrowInvalidOperationException_WhenNewNameIsNull()
 	{
 		// Arrange
+		var colonizerId = Guid.NewGuid();
 		var planetId = Guid.NewGuid();
-		var planet = new Planet(planetId, "APlanet", false, null, null);
+		var planet = new Planet(planetId, "APlanet", true, colonizerId, _utcNow);
 
 		// Act & Assert
-		var ex = Assert.Throws<InvalidOperationException>(() => planet.Rename(null));
+		var ex = Assert.Throws<InvalidOperationException>(() => planet.Rename(null, colonizerId));
 		Assert.That(ex.Message, Is.EqualTo("New name is either null or empty."));
 	}
 
@@ -110,11 +141,12 @@ public class PlanetTests
 	public void Rename_ShouldThrowInvalidOperationException_WhenNewNameIsEmpty()
 	{
 		// Arrange
+		var colonizerId = Guid.NewGuid();
 		var planetId = Guid.NewGuid();
-		var planet = new Planet(planetId, "APlanet", false, null, null);
+		var planet = new Planet(planetId, "APlanet", true, colonizerId, _utcNow);
 
 		// Act & Assert
-		var ex = Assert.Throws<InvalidOperationException>(() => planet.Rename(string.Empty));
+		var ex = Assert.Throws<InvalidOperationException>(() => planet.Rename(string.Empty, colonizerId));
 		Assert.That(ex.Message, Is.EqualTo("New name is either null or empty."));
 	}
 
