@@ -15,6 +15,7 @@ public class PlanetsControllerTests
 	private Mock<IPlanetStateRetriever> _planetStateRetriever;
 	private Mock<IPlanetStore> _planetStore;
 	private Mock<IColonizePlanetCommandHandler> _colonizePlanetCommandHandler;
+	private Mock<IRenamePlanetCommandHandler> _renamePlanetCommandHandler;
 	private PlanetsController _controller;
 
 	[SetUp]
@@ -23,7 +24,12 @@ public class PlanetsControllerTests
 		_planetStateRetriever = new Mock<IPlanetStateRetriever>();
 		_planetStore = new Mock<IPlanetStore>();
 		_colonizePlanetCommandHandler = new Mock<IColonizePlanetCommandHandler>();
-		_controller = new PlanetsController(_planetStateRetriever.Object, _planetStore.Object, _colonizePlanetCommandHandler.Object);
+		_renamePlanetCommandHandler = new Mock<IRenamePlanetCommandHandler>();
+		_controller = new PlanetsController(
+			_planetStateRetriever.Object, 
+			_planetStore.Object, 
+			_colonizePlanetCommandHandler.Object, 
+			_renamePlanetCommandHandler.Object);
 	}
 
 	[Test]
@@ -314,5 +320,107 @@ public class PlanetsControllerTests
 		Assert.That(result, Is.Not.Null);
 		Assert.That(result!.StatusCode, Is.EqualTo(500));
 		Assert.That(result.Value, Is.EqualTo("Unexpected error."));
+	}
+
+	[Test]
+	public async Task RenamePlanet_ShouldReturnOk_WhenRenameIsSuccessful()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { NewName = "New Planet Name" };
+		var command = new RenamePlanetCommand { PlanetId = planetId, PlanetName = request.NewName };
+
+		_renamePlanetCommandHandler
+			.Setup(handler => handler.RenamePlanetAsync(It.Is<RenamePlanetCommand>(c => c.PlanetId == planetId && c.PlanetName == request.NewName)))
+			.Returns(Task.CompletedTask);
+
+		// Act
+		var result = await _controller.RenamePlanet(planetId, request);
+
+		// Assert
+		Assert.That(result, Is.TypeOf<OkObjectResult>());
+		var okResult = result as OkObjectResult;
+		Assert.That(okResult.Value, Is.EqualTo("Planet successfully renamed."));
+	}
+
+	[Test]
+	public async Task RenamePlanet_ShouldReturnNotFound_WhenPlanetNotFound()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { NewName = "New Planet Name" };
+
+		_renamePlanetCommandHandler
+			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
+			.ThrowsAsync(new InvalidOperationException("Planet not found."));
+
+		// Act
+		var result = await _controller.RenamePlanet(planetId, request);
+
+		// Assert
+		Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
+		var notFoundResult = result as NotFoundObjectResult;
+		Assert.That(notFoundResult.Value, Is.EqualTo("Planet not found."));
+	}
+
+	[Test]
+	public async Task RenamePlanet_ShouldReturnBadRequest_WhenNewNameIsNull()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { NewName = null };  // Invalid name
+
+		_renamePlanetCommandHandler
+			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
+			.ThrowsAsync(new InvalidOperationException("New name is either null or empty."));
+
+		// Act
+		var result = await _controller.RenamePlanet(planetId, request);
+
+		// Assert
+		Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+		var badRequestResult = result as BadRequestObjectResult;
+		Assert.That(badRequestResult.Value, Is.EqualTo("New name is either null or empty."));
+	}
+
+	[Test]
+	public async Task RenamePlanet_ShouldReturnBadRequest_WhenNewNameIsEmptyString()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { NewName = "" };  // Invalid name
+
+		_renamePlanetCommandHandler
+			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
+			.ThrowsAsync(new InvalidOperationException("New name is either null or empty."));
+
+		// Act
+		var result = await _controller.RenamePlanet(planetId, request);
+
+		// Assert
+		Assert.That(result, Is.TypeOf<BadRequestObjectResult>());
+		var badRequestResult = result as BadRequestObjectResult;
+		Assert.That(badRequestResult.Value, Is.EqualTo("New name is either null or empty."));
+	}
+
+	[Test]
+	public async Task RenamePlanet_ShouldReturnInternalServerError_WhenUnexpectedExceptionOccurs()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var request = new RenamePlanetRequest { NewName = "New Planet Name" };
+
+		_renamePlanetCommandHandler
+			.Setup(handler => handler.RenamePlanetAsync(It.IsAny<RenamePlanetCommand>()))
+			.ThrowsAsync(new Exception("Unexpected error"));
+
+		// Act
+		var result = await _controller.RenamePlanet(planetId, request);
+
+		// Assert
+		Assert.That(result, Is.TypeOf<ObjectResult>());
+		var objectResult = result as ObjectResult;
+		Assert.That(objectResult.StatusCode, Is.EqualTo(500));
+		Assert.That(objectResult.Value, Is.EqualTo("Unexpected error"));
 	}
 }
