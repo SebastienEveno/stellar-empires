@@ -1,46 +1,38 @@
 ﻿using StellarEmpires.Domain.Models;
 using StellarEmpires.Infrastructure.PlanetStore;
+using System.IO.Abstractions.TestingHelpers;
+using System.Text.Json;
 
 namespace StellarEmpires.Tests.Infrastructure.PlanetStore;
 
 [TestFixture]
 public class FilePlanetStoreTests
 {
-    private FilePlanetStore _planetStore;
-    private string _filePath;
+	private MockFileSystem _fileSystem;
+	private FilePlanetStore _planetStore;
 
     [SetUp]
     public void Setup()
     {
-        _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "PlanetStore", "planets.json");
-        _planetStore = new FilePlanetStore();
-
-		// Ensure the file is removed before each test to avoid any side effects
-		if (File.Exists(_filePath))
-		{
-			File.Delete(_filePath);
-		}
+		_fileSystem = new MockFileSystem();
+		_planetStore = new FilePlanetStore(_fileSystem);
 	}
 
-    [TearDown]
-    public void Cleanup()
-    {
-		// Clean up the planets.json file after each test, if it exists
-		if (File.Exists(_filePath))
-        {
-            File.Delete(_filePath);
-        }
+	[Test]
+	public async Task SavePlanetAsync_ShouldCreateDirectory_WhenDirectoryDoesNotExist()
+	{
+		// Arrange
+		var planet = new Planet(Guid.NewGuid(), "New Planet", false, null, null);
 
-		// Clean up the directory if it's empty
-		var directoryPath = Path.GetDirectoryName(_filePath);
-		if (directoryPath != null && Directory.Exists(directoryPath) && !Directory.EnumerateFileSystemEntries(directoryPath).Any())
-		{
-			Directory.Delete(directoryPath);
-		}
+		// Act
+		await _planetStore.SavePlanetAsync(planet);
+
+		// Assert
+		Assert.That(_fileSystem.Directory.Exists("Infrastructure/PlanetStore"), Is.True);
 	}
 
-    [Test]
-    public async Task SavePlanetAsync_ShouldSavePlanet()
+	[Test]
+    public async Task SavePlanetAsync_ShouldSavePlanetToFile()
     {
         // Arrange
         var planet = new Planet(Guid.NewGuid(), "Earth", false, null, null);
@@ -48,12 +40,15 @@ public class FilePlanetStoreTests
         // Act
         await _planetStore.SavePlanetAsync(planet);
 
-        // Assert
-        Assert.That(File.Exists(_filePath), Is.True, "The planet file should exist after saving a planet.");
+		// Assert
+		
+		Assert.That(_fileSystem.File.Exists("Infrastructure/PlanetStore/planets.json"), Is.True, "The planet file should exist after saving a planet.");
 
-        var planets = await _planetStore.GetPlanetsAsync();
-        Assert.That(planets, Has.Count.EqualTo(1));
-        Assert.That(planets[0].Name, Is.EqualTo("Earth"));
+		var fileContent = await _fileSystem.File.ReadAllTextAsync("Infrastructure/PlanetStore/planets.json");
+		var planets = JsonSerializer.Deserialize<List<Planet>>(fileContent);
+		Assert.That(planets, Has.Count.EqualTo(1));
+		Assert.That(planets[0].Id, Is.EqualTo(planet.Id));
+		Assert.That(planets[0].Name, Is.EqualTo("Earth"));
     }
 
 	[Test]

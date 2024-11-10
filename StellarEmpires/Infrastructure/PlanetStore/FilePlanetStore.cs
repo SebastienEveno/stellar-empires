@@ -1,15 +1,19 @@
 ﻿using StellarEmpires.Domain.Models;
+using System.IO.Abstractions;
 using System.Text.Json;
 
 namespace StellarEmpires.Infrastructure.PlanetStore;
 
 public class FilePlanetStore : IPlanetStore
 {
-    private readonly string _planetConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Infrastructure", "PlanetStore", "planets.json");
+	private readonly IFileSystem _fileSystem;
+	private readonly string _planetConfigPath;
 	private readonly JsonSerializerOptions _jsonOptions;
 
-    public FilePlanetStore()
+    public FilePlanetStore(IFileSystem fileSystem)
     {
+		_fileSystem = fileSystem;
+		_planetConfigPath = _fileSystem.Path.Combine("Infrastructure", "PlanetStore", "planets.json");
 		_jsonOptions = new JsonSerializerOptions
 		{
 			WriteIndented = true,
@@ -20,10 +24,10 @@ public class FilePlanetStore : IPlanetStore
 	public async Task SavePlanetAsync(Planet planet)
 	{
 		// Ensure directory exists
-		var directoryPath = Path.GetDirectoryName(_planetConfigPath);
-		if (directoryPath != null && !Directory.Exists(directoryPath))
+		var directoryPath = _fileSystem.Path.GetDirectoryName(_planetConfigPath);
+		if (directoryPath != null && !_fileSystem.Directory.Exists(directoryPath))
 		{
-			Directory.CreateDirectory(directoryPath);
+			_fileSystem.Directory.CreateDirectory(directoryPath);
 		}
 
 		var planets = await LoadPlanetsAsync();
@@ -35,7 +39,7 @@ public class FilePlanetStore : IPlanetStore
 		}
 
 		planets.Add(planet);
-		await File.WriteAllTextAsync(_planetConfigPath, JsonSerializer.Serialize(planets, _jsonOptions));
+		await _fileSystem.File.WriteAllTextAsync(_planetConfigPath, JsonSerializer.Serialize(planets, _jsonOptions));
 	}
 
 	public Task<List<Planet>> GetPlanetsAsync()
@@ -51,12 +55,12 @@ public class FilePlanetStore : IPlanetStore
 
 	private async Task<List<Planet>> LoadPlanetsAsync()
 	{
-		if (!File.Exists(_planetConfigPath))
+		if (!_fileSystem.File.Exists(_planetConfigPath))
 		{
 			return new List<Planet>();
 		}
 
-		var json = await File.ReadAllTextAsync(_planetConfigPath);
+		var json = await _fileSystem.File.ReadAllTextAsync(_planetConfigPath);
 		return JsonSerializer.Deserialize<List<Planet>>(json, _jsonOptions) ?? new List<Planet>();
 	}
 }
