@@ -244,7 +244,7 @@ public class PlanetsControllerTests
 			.Returns(Task.CompletedTask);
 
 		// Act
-		var colonizePlanetRequest = new ColonizePlanetRequest(playerId);
+		var colonizePlanetRequest = new ColonizePlanetRequest { PlayerId = playerId };
 		var result = await _controller.ColonizePlanet(planetId, colonizePlanetRequest) as OkObjectResult;
 
 		// Assert
@@ -265,7 +265,7 @@ public class PlanetsControllerTests
 			.ThrowsAsync(new InvalidOperationException("Planet not found."));
 
 		// Act
-		var colonizePlanetRequest = new ColonizePlanetRequest(playerId);
+		var colonizePlanetRequest = new ColonizePlanetRequest { PlayerId = playerId };
 		var result = await _controller.ColonizePlanet(planetId, colonizePlanetRequest) as NotFoundObjectResult;
 
 		// Assert
@@ -286,7 +286,7 @@ public class PlanetsControllerTests
 			.ThrowsAsync(new InvalidOperationException("Planet is already colonized."));
 
 		// Act
-		var colonizePlanetRequest = new ColonizePlanetRequest(playerId);
+		var colonizePlanetRequest = new ColonizePlanetRequest { PlayerId = playerId };
 		var result = await _controller.ColonizePlanet(planetId, colonizePlanetRequest) as ConflictObjectResult;
 
 		// Assert
@@ -307,7 +307,7 @@ public class PlanetsControllerTests
 			.ThrowsAsync(new Exception("Unexpected error."));
 
 		// Act
-		var colonizePlanetRequest = new ColonizePlanetRequest(playerId);
+		var colonizePlanetRequest = new ColonizePlanetRequest { PlayerId = playerId };
 		var result = await _controller.ColonizePlanet(planetId, colonizePlanetRequest) as ObjectResult;
 
 		// Assert
