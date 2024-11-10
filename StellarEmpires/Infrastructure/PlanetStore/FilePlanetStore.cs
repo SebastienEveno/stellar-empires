@@ -10,8 +10,8 @@ public class FilePlanetStore : IPlanetStore
 	private readonly string _planetConfigPath;
 	private readonly JsonSerializerOptions _jsonOptions;
 
-    public FilePlanetStore(IFileSystem fileSystem)
-    {
+	public FilePlanetStore(IFileSystem fileSystem)
+	{
 		_fileSystem = fileSystem;
 		_planetConfigPath = _fileSystem.Path.Combine("Infrastructure", "PlanetStore", "planets.json");
 		_jsonOptions = new JsonSerializerOptions
@@ -19,7 +19,7 @@ public class FilePlanetStore : IPlanetStore
 			WriteIndented = true,
 			PropertyNameCaseInsensitive = true
 		};
-    }
+	}
 
 	public async Task SavePlanetAsync(Planet planet)
 	{
