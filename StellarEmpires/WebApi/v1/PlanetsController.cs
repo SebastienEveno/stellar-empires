@@ -76,7 +76,7 @@ public class PlanetsController : ControllerBase
 			return BadRequest("Planet with the same ID already exists.");
 		}
 
-		var newPlanet = new Planet(
+		var newPlanet = Planet.Create(
 			request.Id,
 			request.Name,
 			request.IsColonized,

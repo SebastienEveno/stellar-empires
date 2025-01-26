@@ -10,7 +10,8 @@ public class DomainEventJsonConverter : JsonConverter<IDomainEvent>
 	{
 		{ nameof(MockDomainEvent), typeof(MockDomainEvent) },
 		{ nameof(PlanetColonizedDomainEvent), typeof(PlanetColonizedDomainEvent) },
-		{ nameof(PlanetRenamedDomainEvent), typeof(PlanetRenamedDomainEvent) }
+		{ nameof(PlanetRenamedDomainEvent), typeof(PlanetRenamedDomainEvent) },
+		{ nameof(PlanetCreatedDomainEvent), typeof(PlanetCreatedDomainEvent) }
 	};
 
 

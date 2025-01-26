@@ -85,10 +85,10 @@ public class FileEventStoreTests
 		// Arrange
 		var entityId = Guid.NewGuid();
 		var domainEvents = new List<IDomainEvent>
-						{
-							new MockDomainEvent { EntityId = entityId },
-							new MockDomainEvent { EntityId = entityId }
-						};
+			{
+				new MockDomainEvent { EntityId = entityId },
+				new MockDomainEvent { EntityId = entityId }
+			};
 
 		foreach (var domainEvent in domainEvents)
 		{
@@ -134,7 +134,7 @@ public class FileEventStoreTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var planet = new Planet(planetId, "Earth", false, null, null);
+		var planet = Planet.Create(planetId, "Earth", false, null, null);
 		await _planetStore.SavePlanetAsync(planet);
 
 		var domainEvent = new PlanetColonizedDomainEvent

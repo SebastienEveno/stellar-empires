@@ -26,9 +26,9 @@ public class PlanetsControllerTests
 		_colonizePlanetCommandHandler = new Mock<IColonizePlanetCommandHandler>();
 		_renamePlanetCommandHandler = new Mock<IRenamePlanetCommandHandler>();
 		_controller = new PlanetsController(
-			_planetStateRetriever.Object, 
-			_planetStore.Object, 
-			_colonizePlanetCommandHandler.Object, 
+			_planetStateRetriever.Object,
+			_planetStore.Object,
+			_colonizePlanetCommandHandler.Object,
 			_renamePlanetCommandHandler.Object);
 	}
 
@@ -37,7 +37,7 @@ public class PlanetsControllerTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var initialPlanet = new Planet(planetId, "Earth", false, null, null);
+		var initialPlanet = Planet.Create(planetId, "Earth", false, null, null);
 		_planetStateRetriever
 			.Setup(x => x.GetInitialStateAsync(planetId))
 			.ReturnsAsync(initialPlanet);
@@ -77,7 +77,7 @@ public class PlanetsControllerTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var currentPlanet = new Planet(planetId, "Mars", true, Guid.NewGuid(), DateTime.UtcNow);
+		var currentPlanet = Planet.Create(planetId, "Mars", true, Guid.NewGuid(), DateTime.UtcNow);
 		_planetStateRetriever
 			.Setup(x => x.GetCurrentStateAsync(planetId))
 			.ReturnsAsync(currentPlanet);
@@ -118,8 +118,8 @@ public class PlanetsControllerTests
 		// Arrange
 		var planets = new List<Planet>
 		{
-			new Planet(Guid.NewGuid(), "Mercury", false, null, null),
-			new Planet(Guid.NewGuid(), "Venus", false, null, null)
+			Planet.Create(Guid.NewGuid(), "Mercury", false, null, null),
+			Planet.Create(Guid.NewGuid(), "Venus", false, null, null)
 		};
 		_planetStore
 			.Setup(x => x.GetPlanetsAsync())
@@ -173,7 +173,7 @@ public class PlanetsControllerTests
 			IsColonized = false
 		};
 
-		var existingPlanet = new Planet(existingPlanetId, "Existing Planet", false, null, null);
+		var existingPlanet = Planet.Create(existingPlanetId, "Existing Planet", false, null, null);
 
 		_planetStore
 			.Setup(store => store.GetPlanetByIdAsync(createPlanetDto.Id))

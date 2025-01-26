@@ -22,7 +22,7 @@ public class FilePlanetStoreTests
 	public async Task SavePlanetAsync_ShouldCreateDirectory_WhenDirectoryDoesNotExist()
 	{
 		// Arrange
-		var planet = new Planet(Guid.NewGuid(), "New Planet", false, null, null);
+		var planet = Planet.Create(Guid.NewGuid(), "New Planet", false, null, null);
 
 		// Act
 		await _planetStore.SavePlanetAsync(planet);
@@ -35,7 +35,7 @@ public class FilePlanetStoreTests
 	public async Task SavePlanetAsync_ShouldSavePlanetToFile()
 	{
 		// Arrange
-		var planet = new Planet(Guid.NewGuid(), "Earth", false, null, null);
+		var planet = Planet.Create(Guid.NewGuid(), "Earth", false, null, null);
 
 		// Act
 		await _planetStore.SavePlanetAsync(planet);
@@ -55,11 +55,11 @@ public class FilePlanetStoreTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var planet = new Planet(planetId, "Earth", false, null, null);
+		var planet = Planet.Create(planetId, "Earth", false, null, null);
 		await _planetStore.SavePlanetAsync(planet);
 
 		// Act
-		var updatedPlanet = new Planet(planetId, "Mars", true, Guid.NewGuid(), DateTime.UtcNow);
+		var updatedPlanet = Planet.Create(planetId, "Mars", true, Guid.NewGuid(), DateTime.UtcNow);
 		await _planetStore.SavePlanetAsync(updatedPlanet);
 
 		// Assert
@@ -77,8 +77,8 @@ public class FilePlanetStoreTests
 	public async Task GetPlanetsAsync_ShouldReturnSavedPlanets()
 	{
 		// Arrange
-		var planet1 = new Planet(Guid.NewGuid(), "Earth", false, null, null);
-		var planet2 = new Planet(Guid.NewGuid(), "Mars", false, null, null);
+		var planet1 = Planet.Create(Guid.NewGuid(), "Earth", false, null, null);
+		var planet2 = Planet.Create(Guid.NewGuid(), "Mars", false, null, null);
 		await _planetStore.SavePlanetAsync(planet1);
 		await _planetStore.SavePlanetAsync(planet2);
 
@@ -105,8 +105,8 @@ public class FilePlanetStoreTests
 	public async Task GetPlanetByIdAsync_ShouldReturnCorrectPlanet()
 	{
 		// Arrange
-		var planet1 = new Planet(Guid.NewGuid(), "Earth", false, null, null);
-		var planet2 = new Planet(Guid.NewGuid(), "Mars", false, null, null);
+		var planet1 = Planet.Create(Guid.NewGuid(), "Earth", false, null, null);
+		var planet2 = Planet.Create(Guid.NewGuid(), "Mars", false, null, null);
 		await _planetStore.SavePlanetAsync(planet1);
 		await _planetStore.SavePlanetAsync(planet2);
 
