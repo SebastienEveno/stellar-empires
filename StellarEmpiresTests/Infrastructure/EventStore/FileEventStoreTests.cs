@@ -153,4 +153,24 @@ public class FileEventStoreTests
 		Assert.That(updatedPlanet.ColonizedBy, Is.EqualTo(domainEvent.PlayerId));
 		Assert.That(updatedPlanet.ColonizedAt, Is.EqualTo(_utcNow));
 	}
+
+	[Test]
+	public async Task SaveEventAsync_ShouldCreateNewPlanet_WhenPlanetDoesNotExist()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var domainEvent = new PlanetCreatedDomainEvent
+		{
+			EntityId = planetId,
+			PlanetName = "New Planet"
+		};
+
+		// Act
+		await _eventStore.SaveEventAsync<Planet>(domainEvent);
+
+		// Assert
+		var newPlanet = await _planetStore.GetPlanetByIdAsync(planetId);
+		Assert.That(newPlanet, Is.Not.Null);
+		Assert.That(newPlanet!.Name, Is.EqualTo("New Planet"));
+	}
 }

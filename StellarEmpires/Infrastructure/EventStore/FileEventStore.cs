@@ -34,17 +34,23 @@ public class FileEventStore : IEventStore
 
 		var json = JsonSerializer.Serialize(allEvents, _jsonOptions);
 		await _fileSystem.File.WriteAllTextAsync(filePath, json);
+		
+		await SaveEntityState<TEntity>(domainEvent);
+	}
 
+	private async Task SaveEntityState<TEntity>(IDomainEvent domainEvent)
+	{
+		// TODO Add factory pattern if more entities to be supported
+		
 		// Save the latest state of the planet
 		if (typeof(TEntity) == typeof(Planet))
 		{
-			var planet = await _planetStore.GetPlanetByIdAsync(domainEvent.EntityId);
+			var planet = await _planetStore.GetPlanetByIdAsync(domainEvent.EntityId)
+				?? Planet.Create(domainEvent.EntityId, "New Planet", false, null, null);
 
-			if (planet != null)
-			{
-				planet.Apply(domainEvent);
-				await _planetStore.SavePlanetAsync(planet);
-			}
+			planet.Apply(domainEvent);
+
+			await _planetStore.SavePlanetAsync(planet);
 		}
 	}
 
