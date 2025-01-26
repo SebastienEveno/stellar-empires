@@ -13,7 +13,7 @@ public class MockEntity : Entity
 
 	public void AddDomainEvent()
 	{
-		var domainEvent = new MockDomainEvent{ EntityId = Id };
+		var domainEvent = new MockDomainEvent { EntityId = Id };
 
 		AddDomainEvent(domainEvent);
 	}
