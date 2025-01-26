@@ -2,6 +2,7 @@
 using StellarEmpires.Events;
 using StellarEmpires.Helpers;
 using StellarEmpires.Infrastructure.EventStore;
+using StellarEmpires.Infrastructure.PlanetStore;
 using StellarEmpires.Tests.Mocks;
 using System.IO.Abstractions.TestingHelpers;
 
@@ -12,6 +13,7 @@ public class FileEventStoreTests
 {
 	private MockFileSystem _fileSystem;
 	private FileEventStore _eventStore;
+	private FilePlanetStore _planetStore;
 
 	private DateTime _utcNow;
 
@@ -19,7 +21,8 @@ public class FileEventStoreTests
 	public void Setup()
 	{
 		_fileSystem = new MockFileSystem();
-		_eventStore = new FileEventStore(_fileSystem);
+		_planetStore = new FilePlanetStore(_fileSystem);
+		_eventStore = new FileEventStore(_fileSystem, _planetStore);
 
 		_utcNow = new DateTime(2024, 11, 7, 0, 0, 0, DateTimeKind.Utc);
 		DateTimeProvider.SetUtcNow(() => _utcNow);
@@ -35,7 +38,7 @@ public class FileEventStoreTests
 	public async Task SaveEventAsync_ShouldCreateDirectoryAndFile_WhenEventIsSaved()
 	{
 		// Arrange
-		var domainEvent = new MockDomainEvent{ EntityId = Guid.NewGuid() };
+		var domainEvent = new MockDomainEvent { EntityId = Guid.NewGuid() };
 
 		// Act
 		await _eventStore.SaveEventAsync<MockEntity>(domainEvent);
@@ -82,10 +85,10 @@ public class FileEventStoreTests
 		// Arrange
 		var entityId = Guid.NewGuid();
 		var domainEvents = new List<IDomainEvent>
-		{
-			new MockDomainEvent { EntityId = entityId },
-			new MockDomainEvent { EntityId = entityId }
-		};
+						{
+							new MockDomainEvent { EntityId = entityId },
+							new MockDomainEvent { EntityId = entityId }
+						};
 
 		foreach (var domainEvent in domainEvents)
 		{
@@ -127,17 +130,27 @@ public class FileEventStoreTests
 	}
 
 	[Test]
-	public async Task Apply_ShouldUpdateEntityLastEventOccurred()
+	public async Task SaveEventAsync_ShouldUpdatePlanetState_WhenEventIsSaved()
 	{
 		// Arrange
-		var mockEntity = new MockEntity();
-		var domainEvent = new MockDomainEvent { EntityId =  mockEntity.Id };
+		var planetId = Guid.NewGuid();
+		var planet = new Planet(planetId, "Earth", false, null, null);
+		await _planetStore.SavePlanetAsync(planet);
+
+		var domainEvent = new PlanetColonizedDomainEvent
+		{
+			EntityId = planetId,
+			PlayerId = Guid.NewGuid()
+		};
 
 		// Act
-		await _eventStore.SaveEventAsync<MockEntity>(domainEvent);
-		mockEntity.Apply(domainEvent);
+		await _eventStore.SaveEventAsync<Planet>(domainEvent);
 
 		// Assert
-		Assert.That(mockEntity.LastEventOccurred, Is.EqualTo(_utcNow));
+		var updatedPlanet = await _planetStore.GetPlanetByIdAsync(planetId);
+		Assert.That(updatedPlanet, Is.Not.Null);
+		Assert.That(updatedPlanet!.IsColonized, Is.True);
+		Assert.That(updatedPlanet.ColonizedBy, Is.EqualTo(domainEvent.PlayerId));
+		Assert.That(updatedPlanet.ColonizedAt, Is.EqualTo(_utcNow));
 	}
 }
