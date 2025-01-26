@@ -42,7 +42,7 @@ public class ColonizePlanetCommandHandlerTests
 		// Arrange
 		var planetId = Guid.NewGuid();
 		var playerId = Guid.NewGuid();
-		var planet = new Planet(planetId, "Test Planet", false, null, null);
+		var planet = Planet.Create(planetId, "Test Planet", false, null, null);
 
 		_planetStateRetrieverMock
 			.Setup(r => r.GetCurrentStateAsync(planetId))
@@ -82,7 +82,7 @@ public class ColonizePlanetCommandHandlerTests
 		// Arrange
 		var planetId = Guid.NewGuid();
 		var playerId = Guid.NewGuid();
-		var planet = new Planet(planetId, "Test Planet", true, playerId, _utcNow);
+		var planet = Planet.Create(planetId, "Test Planet", true, playerId, _utcNow);
 
 		_planetStateRetrieverMock
 			.Setup(r => r.GetCurrentStateAsync(planetId))

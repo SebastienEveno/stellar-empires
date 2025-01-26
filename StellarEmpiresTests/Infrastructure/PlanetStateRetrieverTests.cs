@@ -2,10 +2,10 @@
 using StellarEmpires.Domain.Models;
 using StellarEmpires.Domain.Services;
 using StellarEmpires.Events;
+using StellarEmpires.Helpers;
+using StellarEmpires.Infrastructure;
 using StellarEmpires.Infrastructure.EventStore;
 using StellarEmpires.Infrastructure.PlanetStore;
-using StellarEmpires.Infrastructure;
-using StellarEmpires.Helpers;
 
 namespace StellarEmpires.Tests.Infrastructure;
 
@@ -55,7 +55,7 @@ public class PlanetStateRetrieverTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var mockPlanet = new Planet(planetId, "Earth", false, null, null);
+		var mockPlanet = Planet.Create(planetId, "Earth", false, null, null);
 
 		_planetStore
 			.Setup(store => store.GetPlanetByIdAsync(planetId))
@@ -73,7 +73,7 @@ public class PlanetStateRetrieverTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		var mockPlanet = new Planet(planetId, "Earth", false, null, null);
+		var mockPlanet = Planet.Create(planetId, "Earth", false, null, null);
 
 		_planetStore
 			.Setup(store => store.GetPlanetByIdAsync(planetId))
@@ -103,7 +103,7 @@ public class PlanetStateRetrieverTests
 		// Arrange
 		var planetId = Guid.NewGuid();
 		var playerId = Guid.NewGuid();
-		var mockPlanet = new Planet(planetId, "Earth", false, null, null);
+		var mockPlanet = Planet.Create(planetId, "Earth", false, null, null);
 
 		var event1 = new PlanetColonizedDomainEvent
 		{

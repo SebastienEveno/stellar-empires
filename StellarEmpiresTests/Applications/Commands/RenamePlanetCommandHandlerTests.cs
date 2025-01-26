@@ -42,7 +42,7 @@ public class RenamePlanetCommandHandlerTests
 		// Arrange
 		var colonizerId = Guid.NewGuid();
 		var planetId = Guid.NewGuid();
-		var planet = new Planet(planetId, "Test Planet", true, colonizerId, _utcNow);
+		var planet = Planet.Create(planetId, "Test Planet", true, colonizerId, _utcNow);
 
 		_planetStateRetrieverMock
 			.Setup(x => x.GetCurrentStateAsync(planetId))
@@ -105,7 +105,7 @@ public class RenamePlanetCommandHandlerTests
 			PlanetName = "New Planet Name"
 		};
 
-		var planet = new Planet(planetId, "Test Planet", true, colonizerId, _utcNow);
+		var planet = Planet.Create(planetId, "Test Planet", true, colonizerId, _utcNow);
 		_planetStateRetrieverMock
 			.Setup(x => x.GetCurrentStateAsync(planetId))
 			.ReturnsAsync(planet);

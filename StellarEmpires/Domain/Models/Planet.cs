@@ -1,4 +1,5 @@
 ﻿using StellarEmpires.Events;
+using System.Text.Json.Serialization;
 
 namespace StellarEmpires.Domain.Models;
 
@@ -9,12 +10,26 @@ public class Planet : Entity
 	public Guid? ColonizedBy { get; private set; }
 	public DateTime? ColonizedAt { get; private set; }
 
-	public Planet(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt) : base(id)
+	[JsonConstructor]
+	private Planet(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt) : base(id)
 	{
 		Name = name;
 		IsColonized = isColonized;
 		ColonizedBy = colonizedBy;
 		ColonizedAt = colonizedAt;
+	}
+
+	public static Planet Create(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt)
+	{
+		var planet = new Planet(id, name, isColonized, colonizedBy, colonizedAt);
+		var planetCreatedEvent = new PlanetCreatedDomainEvent
+		{
+			EntityId = planet.Id,
+			PlanetName = planet.Name
+		};
+		planet.Apply(planetCreatedEvent);
+		planet.AddDomainEvent(planetCreatedEvent);
+		return planet;
 	}
 
 	public void Colonize(Guid playerId)
@@ -60,6 +75,11 @@ public class Planet : Entity
 
 	public override void Apply(IDomainEvent @event)
 	{
+		if (@event is PlanetCreatedDomainEvent planetCreatedDomainEvent)
+		{
+			Name = planetCreatedDomainEvent.PlanetName;
+		}
+
 		if (@event is PlanetColonizedDomainEvent planetColonizedDomainEvent)
 		{
 			IsColonized = true;

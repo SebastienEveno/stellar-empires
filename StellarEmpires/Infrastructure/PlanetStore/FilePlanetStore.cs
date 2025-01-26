@@ -35,7 +35,7 @@ public class FilePlanetStore : IPlanetStore
 
 		if (existingPlanet != null)
 		{
-			throw new InvalidOperationException("Planet already exists in the list.");
+			planets.Remove(existingPlanet);
 		}
 
 		planets.Add(planet);
