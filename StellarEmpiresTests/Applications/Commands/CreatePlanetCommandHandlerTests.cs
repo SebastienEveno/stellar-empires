@@ -68,7 +68,7 @@ public class CreatePlanetCommandHandlerTests
         await _handler.CreatePlanetAsync(command);
 
         // Assert
-        _mockEventStore.Verify(store => store.SaveEventAsync<Planet>(It.Is<PlanetCreatedDomainEvent>()), Times.Once);
+        _mockEventStore.Verify(store => store.SaveEventAsync<Planet>(It.IsAny<PlanetCreatedDomainEvent>()), Times.Once);
     }
 }
 
