@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using StellarEmpires.Application.Commands;
+using StellarEmpires.Application.Queries;
 using StellarEmpires.Domain.Models;
-using StellarEmpires.Domain.Services;
 using StellarEmpires.Infrastructure.PlanetStore;
 using StellarEmpires.WebApi.v1.Dtos;
 
@@ -12,36 +12,21 @@ namespace StellarEmpires.WebApi.v1;
 [Produces("application/json")]
 public class PlanetsController : ControllerBase
 {
-	private readonly IPlanetStateRetriever _planetStateRetriever;
 	private readonly IPlanetStore _planetStore;
 	private readonly IColonizePlanetCommandHandler _colonizePlanetCommandHandler;
 	private readonly IRenamePlanetCommandHandler _renamePlanetCommandHandler;
+	private readonly IPlanetQueryHandler _planetQueryHandler;
 
 	public PlanetsController(
-		IPlanetStateRetriever planetStateRetriever,
 		IPlanetStore planetStore,
 		IColonizePlanetCommandHandler colonizePlanetCommandHandler,
-		IRenamePlanetCommandHandler renamePlanetCommandHandler)
+		IRenamePlanetCommandHandler renamePlanetCommandHandler,
+		IPlanetQueryHandler planetQueryHandler)
 	{
-		_planetStateRetriever = planetStateRetriever;
 		_planetStore = planetStore;
 		_colonizePlanetCommandHandler = colonizePlanetCommandHandler;
 		_renamePlanetCommandHandler = renamePlanetCommandHandler;
-	}
-
-	[HttpGet("{planetId}/initial", Name = nameof(GetInitialState))]
-	public async Task<IActionResult> GetInitialState(Guid planetId)
-	{
-		try
-		{
-			var initialState = await _planetStateRetriever.GetInitialStateAsync(planetId);
-
-			return Ok(ReadPlanetDto.FromPlanet(initialState));
-		}
-		catch (InvalidOperationException ex)
-		{
-			return NotFound(ex.Message);
-		}
+		_planetQueryHandler = planetQueryHandler;
 	}
 
 	[HttpGet("{planetId}/current", Name = nameof(GetCurrentState))]
@@ -49,7 +34,7 @@ public class PlanetsController : ControllerBase
 	{
 		try
 		{
-			var currentState = await _planetStateRetriever.GetCurrentStateAsync(planetId);
+			var currentState = await _planetQueryHandler.Handle(planetId);
 
 			return Ok(ReadPlanetDto.FromPlanet(currentState));
 		}

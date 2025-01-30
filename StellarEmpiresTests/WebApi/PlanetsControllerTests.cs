@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Moq;
 using StellarEmpires.Application.Commands;
+using StellarEmpires.Application.Queries;
 using StellarEmpires.Domain.Models;
-using StellarEmpires.Domain.Services;
 using StellarEmpires.Infrastructure.PlanetStore;
 using StellarEmpires.WebApi.v1;
 using StellarEmpires.WebApi.v1.Dtos;
@@ -12,64 +12,24 @@ namespace StellarEmpires.Tests.WebApi;
 [TestFixture]
 public class PlanetsControllerTests
 {
-	private Mock<IPlanetStateRetriever> _planetStateRetriever;
 	private Mock<IPlanetStore> _planetStore;
 	private Mock<IColonizePlanetCommandHandler> _colonizePlanetCommandHandler;
 	private Mock<IRenamePlanetCommandHandler> _renamePlanetCommandHandler;
+	private Mock<IPlanetQueryHandler> _queryHandler;
 	private PlanetsController _controller;
 
 	[SetUp]
 	public void SetUp()
 	{
-		_planetStateRetriever = new Mock<IPlanetStateRetriever>();
 		_planetStore = new Mock<IPlanetStore>();
+		_queryHandler = new Mock<IPlanetQueryHandler>();
 		_colonizePlanetCommandHandler = new Mock<IColonizePlanetCommandHandler>();
 		_renamePlanetCommandHandler = new Mock<IRenamePlanetCommandHandler>();
 		_controller = new PlanetsController(
-			_planetStateRetriever.Object,
 			_planetStore.Object,
 			_colonizePlanetCommandHandler.Object,
-			_renamePlanetCommandHandler.Object);
-	}
-
-	[Test]
-	public async Task GetInitialState_ShouldReturnInitialState_WhenPlanetExists()
-	{
-		// Arrange
-		var planetId = Guid.NewGuid();
-		var initialPlanet = Planet.Create(planetId, "Earth", false, null, null);
-		_planetStateRetriever
-			.Setup(x => x.GetInitialStateAsync(planetId))
-			.ReturnsAsync(initialPlanet);
-
-		// Act
-		var result = await _controller.GetInitialState(planetId) as OkObjectResult;
-
-		// Assert
-		Assert.That(result, Is.Not.Null);
-		Assert.That(result.StatusCode, Is.EqualTo(200));
-		Assert.That(result.Value, Is.EqualTo(ReadPlanetDto.FromPlanet(initialPlanet)));
-	}
-
-	[Test]
-	public async Task GetInitialState_ShouldReturnNotFound_WhenPlanetDoesNotExist()
-	{
-		// Arrange
-		var planetId = Guid.NewGuid();
-		_planetStateRetriever
-			.Setup(x => x.GetInitialStateAsync(planetId))
-			.ThrowsAsync(new InvalidOperationException("Planet not found."));
-
-		// Act
-		var result = await _controller.GetInitialState(planetId);
-
-		// Assert
-		Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
-
-		var notFoundResult = result as NotFoundObjectResult;
-		Assert.That(notFoundResult, Is.Not.Null);
-		Assert.That(notFoundResult.StatusCode, Is.EqualTo(404));
-		Assert.That(notFoundResult.Value, Is.EqualTo("Planet not found."));
+			_renamePlanetCommandHandler.Object,
+			_queryHandler.Object);
 	}
 
 	[Test]
@@ -78,8 +38,8 @@ public class PlanetsControllerTests
 		// Arrange
 		var planetId = Guid.NewGuid();
 		var currentPlanet = Planet.Create(planetId, "Mars", true, Guid.NewGuid(), DateTime.UtcNow);
-		_planetStateRetriever
-			.Setup(x => x.GetCurrentStateAsync(planetId))
+		_queryHandler
+			.Setup(x => x.Handle(planetId))
 			.ReturnsAsync(currentPlanet);
 
 		// Act
@@ -96,8 +56,8 @@ public class PlanetsControllerTests
 	{
 		// Arrange
 		var planetId = Guid.NewGuid();
-		_planetStateRetriever
-			.Setup(x => x.GetCurrentStateAsync(planetId))
+		_queryHandler
+			.Setup(x => x.Handle(planetId))
 			.ThrowsAsync(new InvalidOperationException("Planet not found."));
 
 		// Act
