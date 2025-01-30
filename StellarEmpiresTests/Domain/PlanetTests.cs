@@ -54,6 +54,66 @@ public class PlanetTests
 	}
 
 	[Test]
+	public void Create_ShouldThrowException_WhenIsColonizedIsFalseAndColonizedByIsNotNull()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var name = "New Planet";
+		var isColonized = false;
+		Guid? colonizedBy = Guid.NewGuid();
+		DateTime? colonizedAt = null;
+
+		// Act & Assert
+		var ex = Assert.Throws<InvalidOperationException>(() => Planet.Create(planetId, name, isColonized, colonizedBy, colonizedAt));
+		Assert.That(ex.Message, Is.EqualTo("If the planet is not colonized, colonizedBy and colonizedAt must be null."));
+	}
+
+	[Test]
+	public void Create_ShouldThrowException_WhenIsColonizedIsFalseAndColonizedAtIsNotNull()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var name = "New Planet";
+		var isColonized = false;
+		Guid? colonizedBy = null;
+		DateTime? colonizedAt = DateTime.UtcNow;
+
+		// Act & Assert
+		var ex = Assert.Throws<InvalidOperationException>(() => Planet.Create(planetId, name, isColonized, colonizedBy, colonizedAt));
+		Assert.That(ex.Message, Is.EqualTo("If the planet is not colonized, colonizedBy and colonizedAt must be null."));
+	}
+
+	[Test]
+	public void Create_ShouldThrowException_WhenIsColonizedIsTrueAndColonizedByIsNull()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var name = "New Planet";
+		var isColonized = true;
+		Guid? colonizedBy = null;
+		DateTime? colonizedAt = DateTime.UtcNow;
+
+		// Act & Assert
+		var ex = Assert.Throws<InvalidOperationException>(() => Planet.Create(planetId, name, isColonized, colonizedBy, colonizedAt));
+		Assert.That(ex.Message, Is.EqualTo("If the planet is colonized, colonizedBy and colonizedAt must not be null."));
+	}
+
+	[Test]
+	public void Create_ShouldThrowException_WhenIsColonizedIsTrueAndColonizedAtIsNull()
+	{
+		// Arrange
+		var planetId = Guid.NewGuid();
+		var name = "New Planet";
+		var isColonized = true;
+		Guid? colonizedBy = Guid.NewGuid();
+		DateTime? colonizedAt = null;
+
+		// Act & Assert
+		var ex = Assert.Throws<InvalidOperationException>(() => Planet.Create(planetId, name, isColonized, colonizedBy, colonizedAt));
+		Assert.That(ex.Message, Is.EqualTo("If the planet is colonized, colonizedBy and colonizedAt must not be null."));
+	}
+
+	[Test]
 	public void Colonize_WhenPlanetNotColonized_ShouldSetIsColonizedAndAddDomainEvent()
 	{
 		// Act
