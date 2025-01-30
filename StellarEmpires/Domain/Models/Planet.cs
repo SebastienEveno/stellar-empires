@@ -22,6 +22,16 @@ public class Planet : Entity
 	public static Planet Create(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt)
 	{
 		var planet = new Planet(id, name, isColonized, colonizedBy, colonizedAt);
+		if (!isColonized && (colonizedBy != null || colonizedAt != null))
+		{
+			throw new InvalidOperationException("If the planet is not colonized, colonizedBy and colonizedAt must be null.");
+		}
+
+		if (isColonized && (colonizedBy == null || colonizedAt == null))
+		{
+			throw new InvalidOperationException("If the planet is colonized, colonizedBy and colonizedAt must not be null.");
+		}
+
 		var planetCreatedEvent = new PlanetCreatedDomainEvent
 		{
 			EntityId = planet.Id,
