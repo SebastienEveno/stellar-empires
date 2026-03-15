@@ -1,6 +1,6 @@
-﻿using StellarEmpires.Domain.Models;
-using StellarEmpires.Events;
-using StellarEmpires.Infrastructure.PlanetStore;
+﻿using StellarEmpires.Features.Planets.Domain;
+using StellarEmpires.Features.Planets.Repositories;
+using StellarEmpires.Shared.Events;
 using System.IO.Abstractions;
 using System.Text.Json;
 

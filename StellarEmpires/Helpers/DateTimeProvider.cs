@@ -6,7 +6,7 @@ public static class DateTimeProvider
 
     public static DateTime UtcNow => _utcNowFunc();
 
-    public static void SetUtcNow(Func<DateTime> utcNowFunc)
+    public static void SetUtcNow(Func<DateTime>? utcNowFunc)
     {
         _utcNowFunc = utcNowFunc ?? throw new ArgumentNullException(nameof(utcNowFunc));
     }

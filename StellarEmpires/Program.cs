@@ -1,9 +1,8 @@
 using StellarEmpires.Application.Commands;
-using StellarEmpires.Application.Queries;
-using StellarEmpires.Domain.Services;
-using StellarEmpires.Infrastructure;
+using StellarEmpires.Features.Planets.Queries;
+using StellarEmpires.Features.Planets.Repositories;
+using StellarEmpires.Features.Planets.Services;
 using StellarEmpires.Infrastructure.EventStore;
-using StellarEmpires.Infrastructure.PlanetStore;
 using System.IO.Abstractions;
 using System.Text.Json.Serialization;
 

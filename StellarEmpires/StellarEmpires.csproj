@@ -21,5 +21,11 @@
     <PackageReference Include="System.IO.Abstractions" Version="22.1.0" />
 	  <PackageReference Include="System.Linq.Async" Version="7.0.0" />
   </ItemGroup>
+  <ItemGroup>
+	  <Folder Include="Features\Mines\Domain\" />
+      <Folder Include="Features\Mines\Commands\" />
+      <Folder Include="Features\Mines\Repositories\" />
+      <Folder Include="Features\Mines\Queries\" />
+  </ItemGroup>
 
 </Project>

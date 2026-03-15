@@ -1,8 +1,9 @@
-﻿using StellarEmpires.Domain.Models;
-using StellarEmpires.Events;
+﻿using StellarEmpires.Features.Planets.Domain;
+using StellarEmpires.Features.Planets.Events;
+using StellarEmpires.Features.Planets.Repositories;
 using StellarEmpires.Helpers;
 using StellarEmpires.Infrastructure.EventStore;
-using StellarEmpires.Infrastructure.PlanetStore;
+using StellarEmpires.Shared.Events;
 using StellarEmpires.Tests.Mocks;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;

@@ -1,4 +1,4 @@
-﻿using StellarEmpires.Events;
+﻿using StellarEmpires.Shared.Events;
 
 namespace StellarEmpires.Infrastructure.EventStore;
 

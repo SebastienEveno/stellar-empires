@@ -1,4 +1,5 @@
-﻿using StellarEmpires.Events;
+﻿using StellarEmpires.Features.Planets.Events;
+using StellarEmpires.Shared.Events;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
