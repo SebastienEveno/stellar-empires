@@ -2,5 +2,5 @@
 
 public interface ICreatePlanetCommandHandler
 {
-	Task CreatePlanetAsync(CreatePlanetCommand command);
+    Task CreatePlanetAsync(CreatePlanetCommand command);
 }

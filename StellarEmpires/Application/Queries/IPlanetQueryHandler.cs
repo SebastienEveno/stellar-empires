@@ -4,5 +4,5 @@ namespace StellarEmpires.Application.Queries;
 
 public interface IPlanetQueryHandler
 {
-	Task<Planet> Handle(Guid planetId);
+    Task<Planet> Handle(Guid planetId);
 }

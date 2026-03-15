@@ -4,6 +4,6 @@ namespace StellarEmpires.Infrastructure.EventStore;
 
 public interface IEventStore
 {
-	Task SaveEventAsync<TEntity>(IDomainEvent @event);
-	Task<IEnumerable<IDomainEvent>> GetEventsAsync<TEntity>(Guid entityId);
+    Task SaveEventAsync<TEntity>(IDomainEvent @event);
+    Task<IEnumerable<IDomainEvent>> GetEventsAsync<TEntity>(Guid entityId);
 }
