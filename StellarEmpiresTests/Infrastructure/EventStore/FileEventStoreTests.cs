@@ -175,4 +175,36 @@ public class FileEventStoreTests
         Assert.That(newPlanet, Is.Not.Null);
         Assert.That(newPlanet!.Name, Is.EqualTo("New Planet"));
     }
+
+    [Test]
+    public async Task SaveEventAsync_ShouldCreatePlanetWithDefaultValues_WhenPlanetDoesNotExistAndEventIsSaved()
+    {
+        // Arrange
+        var planetId = Guid.NewGuid();
+        var playerId = Guid.NewGuid();
+        var domainEvent = new PlanetColonizedDomainEvent
+        {
+            EntityId = planetId,
+            PlayerId = playerId
+        };
+
+        // Act - SaveEventAsync with a planet that doesn't exist yet
+        await _eventStore.SaveEventAsync<Planet>(domainEvent);
+
+        // Assert - Verify that a new planet was created with default values
+        var createdPlanet = await _planetStore.GetPlanetByIdAsync(planetId);
+        Assert.That(createdPlanet, Is.Not.Null, "Planet should be created when it doesn't exist");
+        Assert.That(createdPlanet!.Id, Is.EqualTo(planetId), "Planet ID should match the event's EntityId");
+        Assert.That(createdPlanet.Name, Is.EqualTo("New Planet"), "Planet should have default name");
+
+        // Assert - Verify default coordinates
+        Assert.That(createdPlanet.Galaxy, Is.EqualTo(Galaxy.Unknown), "Galaxy should default to Unknown");
+        Assert.That(createdPlanet.System, Is.EqualTo(1), "System should default to 1");
+        Assert.That(createdPlanet.Slot, Is.EqualTo(1), "Slot should default to 1");
+
+        // Assert - Verify that the domain event was applied to the created planet
+        Assert.That(createdPlanet.IsColonized, Is.True, "Planet should be colonized after event is applied");
+        Assert.That(createdPlanet.ColonizedBy, Is.EqualTo(playerId), "Planet should be colonized by the correct player");
+        Assert.That(createdPlanet.ColonizedAt, Is.EqualTo(_utcNow), "Colonization date should match event occurrence time");
+    }
 }
