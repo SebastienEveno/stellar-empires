@@ -53,7 +53,6 @@ public class PlanetTests
         Assert.That(planet.DomainEvents.First(), Is.InstanceOf<PlanetCreatedDomainEvent>(), "Raised event should be of type PlanetCreatedDomainEvent.");
     }
 
-<<<<<<< Updated upstream
     [Test]
     public void Create_ShouldThrowException_WhenIsColonizedIsFalseAndColonizedByIsNotNull()
     {
