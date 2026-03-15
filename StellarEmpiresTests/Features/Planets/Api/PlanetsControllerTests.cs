@@ -418,4 +418,216 @@ public class PlanetsControllerTests
         Assert.That(objectResult.StatusCode, Is.EqualTo(500));
         Assert.That(objectResult.Value, Is.EqualTo("Unexpected error"));
     }
+
+    // Coordinates feature tests
+    [Test]
+    public async Task GetPlanetByCoordinates_ShouldReturnOk_WhenPlanetExistsAtCoordinates()
+    {
+        // Arrange
+        var galaxy = "Andromeda";
+        var system = 1;
+        var slot = 5;
+        var planetId = Guid.NewGuid();
+        var planet = Planet.Create(planetId, "Test Planet", false, null, null, galaxy, system, slot);
+        var planets = new List<Planet> { planet };
+
+        _planetStore
+            .Setup(x => x.GetPlanetsAsync())
+            .ReturnsAsync(planets);
+
+        // Act
+        var result = await _controller.GetPlanetByCoordinates(galaxy, system, slot) as OkObjectResult;
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.StatusCode, Is.EqualTo(200));
+        var returnedDto = result.Value as ReadPlanetDto;
+        Assert.That(returnedDto, Is.Not.Null);
+        Assert.That(returnedDto.Galaxy, Is.EqualTo(galaxy));
+        Assert.That(returnedDto.System, Is.EqualTo(system));
+        Assert.That(returnedDto.Slot, Is.EqualTo(slot));
+        Assert.That(returnedDto.Id, Is.EqualTo(planetId));
+    }
+
+    [Test]
+    public async Task GetPlanetByCoordinates_ShouldReturnNotFound_WhenNoPlanetExistsAtCoordinates()
+    {
+        // Arrange
+        var galaxy = "Unknown";
+        var system = 99;
+        var slot = 99;
+        var planets = new List<Planet>
+        {
+            Planet.Create(Guid.NewGuid(), "Mars", false, null, null, "Andromeda", 1, 5),
+            Planet.Create(Guid.NewGuid(), "Venus", false, null, null, "Milky-Way", 2, 3)
+        };
+
+        _planetStore
+            .Setup(x => x.GetPlanetsAsync())
+            .ReturnsAsync(planets);
+
+        // Act
+        var result = await _controller.GetPlanetByCoordinates(galaxy, system, slot) as NotFoundObjectResult;
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.StatusCode, Is.EqualTo(404));
+        var errorMessage = result.Value?.ToString() ?? string.Empty;
+        Assert.That(errorMessage, Is.Not.Empty);
+        Assert.That(errorMessage, Does.Contain(galaxy));
+        Assert.That(errorMessage, Does.Contain(system.ToString()));
+        Assert.That(errorMessage, Does.Contain(slot.ToString()));
+    }
+
+    [Test]
+    public async Task GetPlanetByCoordinates_ShouldReturnCorrectPlanet_WhenMultiplePlanetsExist()
+    {
+        // Arrange
+        var targetGalaxy = "Andromeda";
+        var targetSystem = 2;
+        var targetSlot = 7;
+        var targetPlanetId = Guid.NewGuid();
+        var targetPlanet = Planet.Create(targetPlanetId, "Target Planet", false, null, null, targetGalaxy, targetSystem, targetSlot);
+
+        var planets = new List<Planet>
+        {
+            Planet.Create(Guid.NewGuid(), "Planet 1", false, null, null, "Andromeda", 1, 1),
+            Planet.Create(Guid.NewGuid(), "Planet 2", false, null, null, "Andromeda", 1, 2),
+            targetPlanet,
+            Planet.Create(Guid.NewGuid(), "Planet 4", false, null, null, "Milky-Way", 1, 5),
+        };
+
+        _planetStore
+            .Setup(x => x.GetPlanetsAsync())
+            .ReturnsAsync(planets);
+
+        // Act
+        var result = await _controller.GetPlanetByCoordinates(targetGalaxy, targetSystem, targetSlot) as OkObjectResult;
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        var returnedDto = result.Value as ReadPlanetDto;
+        Assert.That(returnedDto.Id, Is.EqualTo(targetPlanetId));
+        Assert.That(returnedDto.Name, Is.EqualTo("Target Planet"));
+    }
+
+    [Test]
+    public async Task GetPlanetByCoordinates_ShouldCaseSensitiveForGalaxy()
+    {
+        // Arrange
+        var planets = new List<Planet>
+        {
+            Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null, "Andromeda", 1, 1)
+        };
+
+        _planetStore
+            .Setup(x => x.GetPlanetsAsync())
+            .ReturnsAsync(planets);
+
+        // Act
+        var result = await _controller.GetPlanetByCoordinates("andromeda", 1, 1) as NotFoundObjectResult;
+
+        // Assert - Case mismatch should result in not found
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result.StatusCode, Is.EqualTo(404));
+    }
+
+    [Test]
+    public async Task AddPlanet_ShouldPreserveCoordinates_WhenProvidedInRequest()
+    {
+        // Arrange
+        var createPlanetDto = new CreatePlanetDto
+        {
+            Name = "New Colonized Planet",
+            IsColonized = false,
+            Galaxy = "Andromeda",
+            System = 2,
+            Slot = 8
+        };
+
+        _planetStore
+            .Setup(store => store.GetPlanetByIdAsync(createPlanetDto.Id))
+            .ReturnsAsync((Planet?)null);
+
+        Planet capturedPlanet = null;
+        _planetStore
+            .Setup(store => store.SavePlanetAsync(It.IsAny<Planet>()))
+            .Callback<Planet>(p => capturedPlanet = p)
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AddPlanet(createPlanetDto);
+
+        // Assert
+        Assert.That(result, Is.TypeOf<CreatedAtActionResult>());
+        Assert.That(capturedPlanet, Is.Not.Null);
+        Assert.That(capturedPlanet.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(capturedPlanet.System, Is.EqualTo(2));
+        Assert.That(capturedPlanet.Slot, Is.EqualTo(8));
+    }
+
+    [Test]
+    public async Task AddPlanet_ShouldUseDefaultCoordinates_WhenNotProvidedInRequest()
+    {
+        // Arrange
+        var createPlanetDto = new CreatePlanetDto
+        {
+            Name = "Simple Planet",
+            IsColonized = false
+            // Galaxy, System, Slot use defaults
+        };
+
+        _planetStore
+            .Setup(store => store.GetPlanetByIdAsync(createPlanetDto.Id))
+            .ReturnsAsync((Planet?)null);
+
+        Planet capturedPlanet = null;
+        _planetStore
+            .Setup(store => store.SavePlanetAsync(It.IsAny<Planet>()))
+            .Callback<Planet>(p => capturedPlanet = p)
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _controller.AddPlanet(createPlanetDto);
+
+        // Assert
+        Assert.That(capturedPlanet, Is.Not.Null);
+        Assert.That(capturedPlanet.Galaxy, Is.EqualTo(string.Empty));
+        Assert.That(capturedPlanet.System, Is.EqualTo(1));
+        Assert.That(capturedPlanet.Slot, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task AddPlanet_ShouldIncludeCoordinatesInResponse_WhenPlanetIsCreated()
+    {
+        // Arrange
+        var createPlanetDto = new CreatePlanetDto
+        {
+            Name = "Coordinate Test Planet",
+            IsColonized = false,
+            Galaxy = "Milky-Way",
+            System = 1,
+            Slot = 3
+        };
+
+        _planetStore
+            .Setup(store => store.GetPlanetByIdAsync(createPlanetDto.Id))
+            .ReturnsAsync((Planet?)null);
+
+        _planetStore
+            .Setup(store => store.SavePlanetAsync(It.IsAny<Planet>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AddPlanet(createPlanetDto);
+
+        // Assert
+        var createdResult = result as CreatedAtActionResult;
+        Assert.That(createdResult, Is.Not.Null);
+        var returnedDto = createdResult.Value as ReadPlanetDto;
+        Assert.That(returnedDto, Is.Not.Null);
+        Assert.That(returnedDto.Galaxy, Is.EqualTo("Milky-Way"));
+        Assert.That(returnedDto.System, Is.EqualTo(1));
+        Assert.That(returnedDto.Slot, Is.EqualTo(3));
+    }
 }

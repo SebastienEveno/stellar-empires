@@ -275,4 +275,153 @@ public class PlanetTests
         // Assert
         Assert.That(planet.Name, Is.EqualTo(newName));
     }
+
+    // Coordinates feature tests
+    [Test]
+    public void Create_ShouldSetCoordinates_WhenCoordinatesProvided()
+    {
+        // Arrange
+        var planetId = Guid.NewGuid();
+        var galaxy = "Andromeda";
+        var system = 2;
+        var slot = 5;
+
+        // Act
+        var planet = Planet.Create(planetId, "Test Planet", false, null, null, galaxy, system, slot);
+
+        // Assert
+        Assert.That(planet.Galaxy, Is.EqualTo(galaxy));
+        Assert.That(planet.System, Is.EqualTo(system));
+        Assert.That(planet.Slot, Is.EqualTo(slot));
+    }
+
+    [Test]
+    public void Create_ShouldUseDefaultCoordinates_WhenCoordinatesNotProvided()
+    {
+        // Arrange
+        var planetId = Guid.NewGuid();
+
+        // Act
+        var planet = Planet.Create(planetId, "Test Planet", false, null, null);
+
+        // Assert
+        Assert.That(planet.Galaxy, Is.EqualTo("Unknown"));
+        Assert.That(planet.System, Is.EqualTo(1));
+        Assert.That(planet.Slot, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Create_ShouldUseProvidedCoordinates_OverDefaultCoordinates()
+    {
+        // Arrange
+        var planetId = Guid.NewGuid();
+        var galaxy = "Milky-Way";
+        var system = 3;
+        var slot = 10;
+
+        // Act
+        var planet = Planet.Create(planetId, "Test Planet", false, null, null, galaxy, system, slot);
+
+        // Assert
+        Assert.That(planet.Galaxy, Is.Not.EqualTo("Unknown"));
+        Assert.That(planet.System, Is.Not.EqualTo(1));
+        Assert.That(planet.Slot, Is.Not.EqualTo(1));
+        Assert.That(planet.Galaxy, Is.EqualTo(galaxy));
+        Assert.That(planet.System, Is.EqualTo(system));
+        Assert.That(planet.Slot, Is.EqualTo(slot));
+    }
+
+    [Test]
+    public void Create_ShouldSetAllCoordinates_IncludingGalaxy()
+    {
+        // Arrange
+        var planetId = Guid.NewGuid();
+        var galaxy = "Andromeda";
+        var system = 1;
+        var slot = 1;
+
+        // Act
+        var planet = Planet.Create(planetId, "Test Planet", false, null, null, galaxy, system, slot);
+
+        // Assert
+        Assert.That(planet.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planet.System, Is.EqualTo(1));
+        Assert.That(planet.Slot, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void Create_ShouldPreserveCoordinates_WithColonizedPlanet()
+    {
+        // Arrange
+        var planetId = Guid.NewGuid();
+        var colonizerId = Guid.NewGuid();
+        var galaxy = "Milky-Way";
+        var system = 2;
+        var slot = 7;
+
+        // Act
+        var planet = Planet.Create(planetId, "Colonized Planet", true, colonizerId, _utcNow, galaxy, system, slot);
+
+        // Assert
+        Assert.That(planet.Galaxy, Is.EqualTo(galaxy));
+        Assert.That(planet.System, Is.EqualTo(system));
+        Assert.That(planet.Slot, Is.EqualTo(slot));
+        Assert.That(planet.IsColonized, Is.True);
+        Assert.That(planet.ColonizedBy, Is.EqualTo(colonizerId));
+    }
+
+    [Test]
+    public void Create_ShouldPreserveCoordinatesInDomainEvent()
+    {
+        // Arrange
+        var planetId = Guid.NewGuid();
+        var galaxy = "Andromeda";
+        var system = 3;
+        var slot = 9;
+
+        // Act
+        var planet = Planet.Create(planetId, "Test Planet", false, null, null, galaxy, system, slot);
+
+        // Assert
+        Assert.That(planet.DomainEvents, Is.Not.Empty);
+        var createdEvent = planet.DomainEvents.First() as PlanetCreatedDomainEvent;
+        Assert.That(createdEvent, Is.Not.Null);
+        Assert.That(createdEvent.EntityId, Is.EqualTo(planetId));
+    }
+
+    [Test]
+    public void Coordinates_ShouldBeReadOnly()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null, "Andromeda", 1, 5);
+
+        // Act & Assert
+        // Verify that Galaxy, System, and Slot are read-only properties (cannot be set)
+        Assert.That(planet.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planet.System, Is.EqualTo(1));
+        Assert.That(planet.Slot, Is.EqualTo(5));
+        // These properties should not have setters
+    }
+
+    [Test]
+    public void Create_ShouldSupportVariousCoordinateValues()
+    {
+        // Arrange & Act
+        var planetA = Planet.Create(Guid.NewGuid(), "Planet A", false, null, null, "Andromeda", 1, 1);
+        var planetB = Planet.Create(Guid.NewGuid(), "Planet B", false, null, null, "Andromeda", 1, 10);
+        var planetC = Planet.Create(Guid.NewGuid(), "Planet C", false, null, null, "Milky-Way", 2, 15);
+
+        // Assert
+        Assert.That(planetA.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planetA.System, Is.EqualTo(1));
+        Assert.That(planetA.Slot, Is.EqualTo(1));
+
+        Assert.That(planetB.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planetB.System, Is.EqualTo(1));
+        Assert.That(planetB.Slot, Is.EqualTo(10));
+
+        Assert.That(planetC.Galaxy, Is.EqualTo("Milky-Way"));
+        Assert.That(planetC.System, Is.EqualTo(2));
+        Assert.That(planetC.Slot, Is.EqualTo(15));
+    }
 }
