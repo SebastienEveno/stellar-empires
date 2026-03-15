@@ -78,15 +78,21 @@ public class PlanetsController : ControllerBase
     /// <summary>
     /// Searches for a planet by its coordinates (galaxy, system, and slot).
     /// </summary>
-    /// <param name="galaxy">The galaxy name (e.g., "Andromeda", "Milky-Way").</param>
+    /// <param name="galaxy">The galaxy name as a string (e.g., "Andromeda", "MilkyWay").</param>
     /// <param name="system">The system number within the galaxy.</param>
     /// <param name="slot">The planet slot within the system (1-15).</param>
     /// <returns>200 OK with the planet's state as <see cref="ReadPlanetDto"/>, or 404 Not Found if no planet exists at those coordinates.</returns>
     [HttpGet("coordinates/{galaxy}/{system}/{slot}", Name = nameof(GetPlanetByCoordinates))]
     public async Task<IActionResult> GetPlanetByCoordinates(string galaxy, int system, int slot)
     {
+        // Parse galaxy string to enum (case-insensitive)
+        if (!Enum.TryParse<Galaxy>(galaxy, ignoreCase: true, out var parsedGalaxy))
+        {
+            return NotFound($"Invalid galaxy: {galaxy}. Valid galaxies are: {string.Join(", ", Enum.GetNames(typeof(Galaxy)))}");
+        }
+
         var planets = await _planetStore.GetPlanetsAsync();
-        var planet = planets.FirstOrDefault(p => p.Galaxy == galaxy && p.System == system && p.Slot == slot);
+        var planet = planets.FirstOrDefault(p => p.Galaxy == parsedGalaxy && p.System == system && p.Slot == slot);
 
         if (planet == null)
         {

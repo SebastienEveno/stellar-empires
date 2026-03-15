@@ -1,4 +1,6 @@
-﻿namespace StellarEmpires.Features.Planets.Api.Dtos;
+﻿using StellarEmpires.Features.Planets.Domain;
+
+namespace StellarEmpires.Features.Planets.Api.Dtos;
 
 public sealed record CreatePlanetDto
 {
@@ -9,7 +11,7 @@ public sealed record CreatePlanetDto
     public DateTime? ColonizedAt { get; init; } = null;
 
     // Coordinates
-    public string Galaxy { get; init; } = string.Empty;
+    public Galaxy Galaxy { get; init; } = Galaxy.Unknown;
     public int System { get; init; } = 1;
     public int Slot { get; init; } = 1;
 }

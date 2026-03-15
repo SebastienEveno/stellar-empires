@@ -13,7 +13,7 @@ public class FilePlanetStore : IPlanetStore
     public FilePlanetStore(IFileSystem fileSystem)
     {
         _fileSystem = fileSystem;
-        _planetConfigPath = _fileSystem.Path.Combine("Infrastructure", "PlanetStore", "planets.json");
+        _planetConfigPath = _fileSystem.Path.Combine("Features", "Planets", "Repositories", "planets.json");
         _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,

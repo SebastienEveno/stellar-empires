@@ -282,7 +282,7 @@ public class PlanetTests
     {
         // Arrange
         var planetId = Guid.NewGuid();
-        var galaxy = "Andromeda";
+        var galaxy = Galaxy.Andromeda;
         var system = 2;
         var slot = 5;
 
@@ -305,7 +305,7 @@ public class PlanetTests
         var planet = Planet.Create(planetId, "Test Planet", false, null, null);
 
         // Assert
-        Assert.That(planet.Galaxy, Is.EqualTo("Unknown"));
+        Assert.That(planet.Galaxy, Is.EqualTo(Galaxy.Unknown));
         Assert.That(planet.System, Is.EqualTo(1));
         Assert.That(planet.Slot, Is.EqualTo(1));
     }
@@ -315,7 +315,7 @@ public class PlanetTests
     {
         // Arrange
         var planetId = Guid.NewGuid();
-        var galaxy = "Milky-Way";
+        var galaxy = Galaxy.MilkyWay;
         var system = 3;
         var slot = 10;
 
@@ -323,7 +323,7 @@ public class PlanetTests
         var planet = Planet.Create(planetId, "Test Planet", false, null, null, galaxy, system, slot);
 
         // Assert
-        Assert.That(planet.Galaxy, Is.Not.EqualTo("Unknown"));
+        Assert.That(planet.Galaxy, Is.Not.EqualTo(Galaxy.Andromeda));
         Assert.That(planet.System, Is.Not.EqualTo(1));
         Assert.That(planet.Slot, Is.Not.EqualTo(1));
         Assert.That(planet.Galaxy, Is.EqualTo(galaxy));
@@ -336,7 +336,7 @@ public class PlanetTests
     {
         // Arrange
         var planetId = Guid.NewGuid();
-        var galaxy = "Andromeda";
+        var galaxy = Galaxy.Andromeda;
         var system = 1;
         var slot = 1;
 
@@ -344,7 +344,7 @@ public class PlanetTests
         var planet = Planet.Create(planetId, "Test Planet", false, null, null, galaxy, system, slot);
 
         // Assert
-        Assert.That(planet.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planet.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(planet.System, Is.EqualTo(1));
         Assert.That(planet.Slot, Is.EqualTo(1));
     }
@@ -355,7 +355,7 @@ public class PlanetTests
         // Arrange
         var planetId = Guid.NewGuid();
         var colonizerId = Guid.NewGuid();
-        var galaxy = "Milky-Way";
+        var galaxy = Galaxy.MilkyWay;
         var system = 2;
         var slot = 7;
 
@@ -375,7 +375,7 @@ public class PlanetTests
     {
         // Arrange
         var planetId = Guid.NewGuid();
-        var galaxy = "Andromeda";
+        var galaxy = Galaxy.Andromeda;
         var system = 3;
         var slot = 9;
 
@@ -393,11 +393,11 @@ public class PlanetTests
     public void Coordinates_ShouldBeReadOnly()
     {
         // Arrange
-        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null, "Andromeda", 1, 5);
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null, Galaxy.Andromeda, 1, 5);
 
         // Act & Assert
         // Verify that Galaxy, System, and Slot are read-only properties (cannot be set)
-        Assert.That(planet.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planet.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(planet.System, Is.EqualTo(1));
         Assert.That(planet.Slot, Is.EqualTo(5));
         // These properties should not have setters
@@ -407,20 +407,20 @@ public class PlanetTests
     public void Create_ShouldSupportVariousCoordinateValues()
     {
         // Arrange & Act
-        var planetA = Planet.Create(Guid.NewGuid(), "Planet A", false, null, null, "Andromeda", 1, 1);
-        var planetB = Planet.Create(Guid.NewGuid(), "Planet B", false, null, null, "Andromeda", 1, 10);
-        var planetC = Planet.Create(Guid.NewGuid(), "Planet C", false, null, null, "Milky-Way", 2, 15);
+        var planetA = Planet.Create(Guid.NewGuid(), "Planet A", false, null, null, Galaxy.Andromeda, 1, 1);
+        var planetB = Planet.Create(Guid.NewGuid(), "Planet B", false, null, null, Galaxy.Andromeda, 1, 10);
+        var planetC = Planet.Create(Guid.NewGuid(), "Planet C", false, null, null, Galaxy.MilkyWay, 2, 15);
 
         // Assert
-        Assert.That(planetA.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planetA.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(planetA.System, Is.EqualTo(1));
         Assert.That(planetA.Slot, Is.EqualTo(1));
 
-        Assert.That(planetB.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(planetB.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(planetB.System, Is.EqualTo(1));
         Assert.That(planetB.Slot, Is.EqualTo(10));
 
-        Assert.That(planetC.Galaxy, Is.EqualTo("Milky-Way"));
+        Assert.That(planetC.Galaxy, Is.EqualTo(Galaxy.MilkyWay));
         Assert.That(planetC.System, Is.EqualTo(2));
         Assert.That(planetC.Slot, Is.EqualTo(15));
     }

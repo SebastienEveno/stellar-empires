@@ -1,4 +1,6 @@
-﻿namespace StellarEmpires.Application.Commands;
+﻿using StellarEmpires.Features.Planets.Domain;
+
+namespace StellarEmpires.Application.Commands;
 
 public record CreatePlanetCommand
 {
@@ -9,7 +11,7 @@ public record CreatePlanetCommand
     public DateTime? ColonizedAt { get; init; }
 
     // Coordinates
-    public string Galaxy { get; init; } = "Unknown";
+    public Galaxy Galaxy { get; init; } = Galaxy.Unknown;
     public int System { get; init; } = 1;
     public int Slot { get; init; } = 1;
 }

@@ -81,7 +81,7 @@ public class CreatePlanetCommandHandlerTests
             IsColonized = false,
             ColonizedBy = null,
             ColonizedAt = null,
-            Galaxy = "Andromeda",
+            Galaxy = Galaxy.Andromeda,
             System = 2,
             Slot = 5
         };
@@ -137,7 +137,7 @@ public class CreatePlanetCommandHandlerTests
             IsColonized = false,
             ColonizedBy = null,
             ColonizedAt = null,
-            Galaxy = "Milky-Way",
+            Galaxy = Galaxy.MilkyWay,
             System = 1,
             Slot = 3
         };
@@ -166,7 +166,7 @@ public class CreatePlanetCommandHandlerTests
             IsColonized = true,
             ColonizedBy = colonizerId,
             ColonizedAt = colonizationDate,
-            Galaxy = "Andromeda",
+            Galaxy = Galaxy.Andromeda,
             System = 3,
             Slot = 7
         };

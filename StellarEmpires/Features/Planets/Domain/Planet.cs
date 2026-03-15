@@ -16,7 +16,7 @@ public class Planet : Entity
     public Dictionary<ResourceType, int> Resources { get; private set; }
 
     // Coordinates
-    public string Galaxy { get; private set; }
+    public Galaxy Galaxy { get; private set; }
     public int System { get; private set; }
     public int Slot { get; private set; }
 
@@ -36,7 +36,7 @@ public class Planet : Entity
         DateTime? colonizedAt,
         List<Mine> mines,
         Dictionary<ResourceType, int> resources,
-        string galaxy,
+        Galaxy galaxy,
         int system,
         int slot) : base(id)
     {
@@ -51,7 +51,7 @@ public class Planet : Entity
         Slot = slot;
     }
 
-    public static Planet Create(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt, string galaxy = "Unknown", int system = 1, int slot = 1)
+    public static Planet Create(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt, Galaxy galaxy = Galaxy.Unknown, int system = 1, int slot = 1)
     {
         if (!isColonized && (colonizedBy != null || colonizedAt != null))
         {

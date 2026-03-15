@@ -13,7 +13,7 @@ public class CoordinatesDtoTests
         var dto = new CreatePlanetDto();
 
         // Assert
-        Assert.That(dto.Galaxy, Is.EqualTo(string.Empty));
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.Unknown));
         Assert.That(dto.System, Is.EqualTo(1));
         Assert.That(dto.Slot, Is.EqualTo(1));
     }
@@ -24,13 +24,13 @@ public class CoordinatesDtoTests
         // Arrange & Act
         var dto = new CreatePlanetDto
         {
-            Galaxy = "Andromeda",
+            Galaxy = Galaxy.Andromeda,
             System = 2,
             Slot = 5
         };
 
         // Assert
-        Assert.That(dto.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(dto.System, Is.EqualTo(2));
         Assert.That(dto.Slot, Is.EqualTo(5));
     }
@@ -45,7 +45,7 @@ public class CoordinatesDtoTests
             Id = planetId,
             Name = "Test Planet",
             IsColonized = false,
-            Galaxy = "Milky-Way",
+            Galaxy = Galaxy.MilkyWay,
             System = 1,
             Slot = 3
         };
@@ -54,7 +54,7 @@ public class CoordinatesDtoTests
         Assert.That(dto.Id, Is.EqualTo(planetId));
         Assert.That(dto.Name, Is.EqualTo("Test Planet"));
         Assert.That(dto.IsColonized, Is.False);
-        Assert.That(dto.Galaxy, Is.EqualTo("Milky-Way"));
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.MilkyWay));
         Assert.That(dto.System, Is.EqualTo(1));
         Assert.That(dto.Slot, Is.EqualTo(3));
     }
@@ -70,7 +70,7 @@ public class CoordinatesDtoTests
             false,
             null,
             null,
-            "Andromeda",
+            Galaxy.Andromeda,
             2,
             7
         );
@@ -79,7 +79,7 @@ public class CoordinatesDtoTests
         var dto = ReadPlanetDto.FromPlanet(planet);
 
         // Assert
-        Assert.That(dto.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(dto.System, Is.EqualTo(2));
         Assert.That(dto.Slot, Is.EqualTo(7));
         Assert.That(dto.Id, Is.EqualTo(planetId));
@@ -96,7 +96,7 @@ public class CoordinatesDtoTests
         var dto = ReadPlanetDto.FromPlanet(planet);
 
         // Assert
-        Assert.That(dto.Galaxy, Is.EqualTo("Unknown"));
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.Unknown));
         Assert.That(dto.System, Is.EqualTo(1));
         Assert.That(dto.Slot, Is.EqualTo(1));
     }
@@ -114,7 +114,7 @@ public class CoordinatesDtoTests
             true,
             colonizerId,
             colonizationDate,
-            "Milky-Way",
+            Galaxy.MilkyWay,
             1,
             5
         );
@@ -128,7 +128,7 @@ public class CoordinatesDtoTests
         Assert.That(dto.IsColonized, Is.True);
         Assert.That(dto.ColonizedBy, Is.EqualTo(colonizerId));
         Assert.That(dto.ColonizedAt, Is.EqualTo(colonizationDate));
-        Assert.That(dto.Galaxy, Is.EqualTo("Milky-Way"));
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.MilkyWay));
         Assert.That(dto.System, Is.EqualTo(1));
         Assert.That(dto.Slot, Is.EqualTo(5));
     }
@@ -157,7 +157,7 @@ public class CoordinatesDtoTests
         Assert.That(dto.IsColonized, Is.True);
         Assert.That(dto.ColonizedBy, Is.EqualTo(colonizerId));
         Assert.That(dto.ColonizedAt, Is.EqualTo(colonizationDate));
-        Assert.That(dto.Galaxy, Is.EqualTo(string.Empty)); // Default
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.Unknown)); // Default
         Assert.That(dto.System, Is.EqualTo(1)); // Default
         Assert.That(dto.Slot, Is.EqualTo(1)); // Default
     }
@@ -168,11 +168,11 @@ public class CoordinatesDtoTests
         // Arrange
         var testCases = new[]
         {
-            ("Andromeda", 1, 1),
-            ("Andromeda", 1, 10),
-            ("Andromeda", 3, 5),
-            ("Milky-Way", 1, 1),
-            ("Milky-Way", 2, 15),
+            (Galaxy.Andromeda, 1, 1),
+            (Galaxy.Andromeda, 1, 10),
+            (Galaxy.Andromeda, 3, 5),
+            (Galaxy.MilkyWay, 1, 1),
+            (Galaxy.MilkyWay, 2, 15),
         };
 
         // Act & Assert
@@ -191,7 +191,7 @@ public class CoordinatesDtoTests
     public void ReadPlanetDto_ShouldPreserveCoordinateIntegrity_InRoundTrip()
     {
         // Arrange
-        var originalGalaxy = "Andromeda";
+        var originalGalaxy = Galaxy.Andromeda;
         var originalSystem = 2;
         var originalSlot = 8;
         var planet = Planet.Create(
@@ -221,7 +221,7 @@ public class CoordinatesDtoTests
         var dto = new CreatePlanetDto
         {
             Name = "Serialization Test",
-            Galaxy = "Milky-Way",
+            Galaxy = Galaxy.MilkyWay,
             System = 2,
             Slot = 10
         };
@@ -232,7 +232,7 @@ public class CoordinatesDtoTests
         var slot = dto.Slot;
 
         // Assert
-        Assert.That(galaxy, Is.EqualTo("Milky-Way"));
+        Assert.That(galaxy, Is.EqualTo(Galaxy.MilkyWay));
         Assert.That(system, Is.EqualTo(2));
         Assert.That(slot, Is.EqualTo(10));
     }
@@ -247,7 +247,7 @@ public class CoordinatesDtoTests
             false,
             null,
             null,
-            "Andromeda",
+            Galaxy.Andromeda,
             1,
             5
         );
@@ -256,7 +256,7 @@ public class CoordinatesDtoTests
         var dto = ReadPlanetDto.FromPlanet(planet);
 
         // Assert - Verify properties can be read
-        Assert.That(dto.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(dto.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(dto.System, Is.EqualTo(1));
         Assert.That(dto.Slot, Is.EqualTo(5));
     }
@@ -265,20 +265,20 @@ public class CoordinatesDtoTests
     public void CreatePlanetDto_ShouldSupportPartialCoordinateInitialization()
     {
         // Arrange & Act
-        var dto1 = new CreatePlanetDto { Galaxy = "Andromeda" };
+        var dto1 = new CreatePlanetDto { Galaxy = Galaxy.Andromeda };
         var dto2 = new CreatePlanetDto { System = 2 };
         var dto3 = new CreatePlanetDto { Slot = 5 };
 
         // Assert - Other properties should use defaults
-        Assert.That(dto1.Galaxy, Is.EqualTo("Andromeda"));
+        Assert.That(dto1.Galaxy, Is.EqualTo(Galaxy.Andromeda));
         Assert.That(dto1.System, Is.EqualTo(1)); // Default
         Assert.That(dto1.Slot, Is.EqualTo(1)); // Default
 
-        Assert.That(dto2.Galaxy, Is.EqualTo(string.Empty)); // Default
+        Assert.That(dto2.Galaxy, Is.EqualTo(Galaxy.Unknown)); // Default
         Assert.That(dto2.System, Is.EqualTo(2));
         Assert.That(dto2.Slot, Is.EqualTo(1)); // Default
 
-        Assert.That(dto3.Galaxy, Is.EqualTo(string.Empty)); // Default
+        Assert.That(dto3.Galaxy, Is.EqualTo(Galaxy.Unknown)); // Default
         Assert.That(dto3.System, Is.EqualTo(1)); // Default
         Assert.That(dto3.Slot, Is.EqualTo(5));
     }

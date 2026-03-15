@@ -11,7 +11,7 @@ public sealed record ReadPlanetDto
     public DateTime? ColonizedAt { get; init; }
 
     // Coordinates
-    public required string Galaxy { get; init; }
+    public required Galaxy Galaxy { get; init; }
     public int System { get; init; }
     public int Slot { get; init; }
 
