@@ -7,6 +7,10 @@ using StellarEmpires.Features.Planets.Repositories;
 
 namespace StellarEmpires.Features.Planets.Api;
 
+/// <summary>
+/// API controller for managing planet operations in Stellar Empires.
+/// Provides endpoints for retrieving, creating, colonizing, and renaming planets.
+/// </summary>
 [ApiController]
 [Route("api/v1/[controller]")]
 [Produces("application/json")]
@@ -17,6 +21,13 @@ public class PlanetsController : ControllerBase
     private readonly IRenamePlanetCommandHandler _renamePlanetCommandHandler;
     private readonly IPlanetQueryHandler _planetQueryHandler;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PlanetsController"/> class.
+    /// </summary>
+    /// <param name="planetStore">The planet data store.</param>
+    /// <param name="colonizePlanetCommandHandler">Handler for colonize planet commands.</param>
+    /// <param name="renamePlanetCommandHandler">Handler for rename planet commands.</param>
+    /// <param name="planetQueryHandler">Handler for planet queries.</param>
     public PlanetsController(
         IPlanetStore planetStore,
         IColonizePlanetCommandHandler colonizePlanetCommandHandler,
@@ -29,6 +40,14 @@ public class PlanetsController : ControllerBase
         _planetQueryHandler = planetQueryHandler;
     }
 
+    /// <summary>
+    /// Retrieves the current state of a specific planet.
+    /// </summary>
+    /// <param name="planetId">The unique identifier of the planet.</param>
+    /// <returns>
+    /// 200 OK with the planet's current state as <see cref="ReadPlanetDto"/>,
+    /// or 404 Not Found if the planet does not exist.
+    /// </returns>
     [HttpGet("{planetId}/current", Name = nameof(GetCurrentState))]
     public async Task<IActionResult> GetCurrentState(Guid planetId)
     {
@@ -44,6 +63,10 @@ public class PlanetsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Retrieves all planets in their initial states.
+    /// </summary>
+    /// <returns>200 OK with a collection of all planets as <see cref="ReadPlanetDto"/> objects.</returns>
     [HttpGet("initial", Name = nameof(GetAllInitialStates))]
     public async Task<IActionResult> GetAllInitialStates()
     {
@@ -52,6 +75,14 @@ public class PlanetsController : ControllerBase
         return Ok(allPlanetsInitialStates.Select(ReadPlanetDto.FromPlanet));
     }
 
+    /// <summary>
+    /// Creates a new planet.
+    /// </summary>
+    /// <param name="request">The planet creation request containing name, colonization status, and optional colonization details.</param>
+    /// <returns>
+    /// 201 Created with the newly created planet's state as <see cref="ReadPlanetDto"/>,
+    /// or 400 Bad Request if a planet with the same ID already exists.
+    /// </returns>
     [HttpPost(Name = nameof(AddPlanet))]
     public async Task<IActionResult> AddPlanet([FromBody] CreatePlanetDto request)
     {
@@ -74,6 +105,17 @@ public class PlanetsController : ControllerBase
         return CreatedAtAction(nameof(GetCurrentState), new { planetId = newPlanet.Id }, ReadPlanetDto.FromPlanet(newPlanet));
     }
 
+    /// <summary>
+    /// Colonizes a planet for a player.
+    /// </summary>
+    /// <param name="planetId">The unique identifier of the planet to colonize.</param>
+    /// <param name="request">The colonization request containing the player ID.</param>
+    /// <returns>
+    /// 200 OK if colonization is successful,
+    /// 404 Not Found if the planet does not exist,
+    /// 409 Conflict if the planet is already colonized,
+    /// or 500 Internal Server Error for unexpected errors.
+    /// </returns>
     [HttpPost("{planetId}/colonize")]
     public async Task<IActionResult> ColonizePlanet(Guid planetId, [FromBody] ColonizePlanetRequest request)
     {
@@ -99,6 +141,17 @@ public class PlanetsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Renames a planet for the player who colonized it.
+    /// </summary>
+    /// <param name="planetId">The unique identifier of the planet to rename.</param>
+    /// <param name="request">The rename request containing the player ID and new planet name.</param>
+    /// <returns>
+    /// 200 OK if the rename is successful,
+    /// 404 Not Found if the planet does not exist,
+    /// 400 Bad Request if the new name is null/empty or if the player is not authorized to rename it,
+    /// or 500 Internal Server Error for unexpected errors.
+    /// </returns>
     [HttpPost("{planetId}/rename")]
     public async Task<IActionResult> RenamePlanet(Guid planetId, [FromBody] RenamePlanetRequest request)
     {
