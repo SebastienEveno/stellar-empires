@@ -1,5 +1,5 @@
 ﻿using StellarEmpires.Domain;
-using StellarEmpires.Events;
+using StellarEmpires.Shared.Events;
 
 namespace StellarEmpires.Tests.Mocks;
 

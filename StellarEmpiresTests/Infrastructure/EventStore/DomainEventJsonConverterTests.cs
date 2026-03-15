@@ -1,6 +1,7 @@
-﻿using StellarEmpires.Events;
+﻿using StellarEmpires.Features.Planets.Events;
 using StellarEmpires.Helpers;
 using StellarEmpires.Infrastructure.EventStore;
+using StellarEmpires.Shared.Events;
 using System.Text.Json;
 
 namespace StellarEmpires.Tests.Infrastructure.EventStore;
