@@ -10,6 +10,9 @@
     <!-- Keep implicit usings and nullable behavior as you like -->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- Generate XML documentation file for Swagger -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <!-- Keep package refs, update versions if necessary to net10-compatible releases -->
