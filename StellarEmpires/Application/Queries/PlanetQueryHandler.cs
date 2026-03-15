@@ -5,22 +5,22 @@ namespace StellarEmpires.Application.Queries;
 
 public class PlanetQueryHandler : IPlanetQueryHandler
 {
-	private readonly IPlanetStore _planetStore;
+    private readonly IPlanetStore _planetStore;
 
-	public PlanetQueryHandler(IPlanetStore planetStore)
-	{
-		_planetStore = planetStore;
-	}
+    public PlanetQueryHandler(IPlanetStore planetStore)
+    {
+        _planetStore = planetStore;
+    }
 
-	public async Task<Planet> Handle(Guid planetId)
-	{
-		var planet = await _planetStore.GetPlanetByIdAsync(planetId);
+    public async Task<Planet> Handle(Guid planetId)
+    {
+        var planet = await _planetStore.GetPlanetByIdAsync(planetId);
 
-		if (planet == null)
-		{
-			throw new InvalidOperationException("Planet not found.");
-		}
+        if (planet == null)
+        {
+            throw new InvalidOperationException("Planet not found.");
+        }
 
-		return planet;
-	}
+        return planet;
+    }
 }

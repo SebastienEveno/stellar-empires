@@ -2,5 +2,5 @@
 
 public interface IColonizePlanetCommandHandler
 {
-	Task ColonizePlanetAsync(ColonizePlanetCommand command);
+    Task ColonizePlanetAsync(ColonizePlanetCommand command);
 }

@@ -5,24 +5,24 @@ namespace StellarEmpires.Tests.Mocks;
 
 public class MockEntity : Entity
 {
-	public DateTime LastEventOccurred { get; private set; }
+    public DateTime LastEventOccurred { get; private set; }
 
-	public MockEntity() : base() { }
+    public MockEntity() : base() { }
 
-	public MockEntity(Guid id) : base(id) { }
+    public MockEntity(Guid id) : base(id) { }
 
-	public void AddDomainEvent()
-	{
-		var domainEvent = new MockDomainEvent { EntityId = Id };
+    public void AddDomainEvent()
+    {
+        var domainEvent = new MockDomainEvent { EntityId = Id };
 
-		AddDomainEvent(domainEvent);
-	}
+        AddDomainEvent(domainEvent);
+    }
 
-	public override void Apply(IDomainEvent domainEvent)
-	{
-		if (domainEvent is MockDomainEvent mockDomainEvent)
-		{
-			LastEventOccurred = mockDomainEvent.OccurredOn;
-		}
-	}
+    public override void Apply(IDomainEvent domainEvent)
+    {
+        if (domainEvent is MockDomainEvent mockDomainEvent)
+        {
+            LastEventOccurred = mockDomainEvent.OccurredOn;
+        }
+    }
 }

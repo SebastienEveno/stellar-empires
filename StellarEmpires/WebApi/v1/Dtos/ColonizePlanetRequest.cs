@@ -2,5 +2,5 @@
 
 public record ColonizePlanetRequest
 {
-	public required Guid PlayerId { get; init; }
+    public required Guid PlayerId { get; init; }
 }

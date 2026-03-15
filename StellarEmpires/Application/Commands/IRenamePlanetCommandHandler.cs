@@ -2,5 +2,5 @@
 
 public interface IRenamePlanetCommandHandler
 {
-	Task RenamePlanetAsync(RenamePlanetCommand command);
+    Task RenamePlanetAsync(RenamePlanetCommand command);
 }
