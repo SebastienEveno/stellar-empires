@@ -28,7 +28,10 @@ public class CreatePlanetCommandHandler : ICreatePlanetCommandHandler
             command.Name,
             command.IsColonized,
             command.ColonizedBy,
-            command.ColonizedAt
+            command.ColonizedAt,
+            command.Galaxy,
+            command.System,
+            command.Slot
         );
 
         await _eventStore.SaveEventAsync<Planet>(newPlanet.DomainEvents.Last());

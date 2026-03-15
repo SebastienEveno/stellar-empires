@@ -15,6 +15,11 @@ public class Planet : Entity
     public List<Mine> Mines { get; private set; }
     public Dictionary<ResourceType, int> Resources { get; private set; }
 
+    // Coordinates
+    public string Galaxy { get; private set; }
+    public int System { get; private set; }
+    public int Slot { get; private set; }
+
     private static readonly Dictionary<ResourceType, int> InitialResources = new Dictionary<ResourceType, int>
         {
             { ResourceType.Metal, 500 }, // Initial amount of Metal
@@ -30,7 +35,10 @@ public class Planet : Entity
         Guid? colonizedBy,
         DateTime? colonizedAt,
         List<Mine> mines,
-        Dictionary<ResourceType, int> resources) : base(id)
+        Dictionary<ResourceType, int> resources,
+        string galaxy,
+        int system,
+        int slot) : base(id)
     {
         Name = name;
         IsColonized = isColonized;
@@ -38,9 +46,12 @@ public class Planet : Entity
         ColonizedAt = colonizedAt;
         Mines = mines ?? new List<Mine>();
         Resources = resources ?? new Dictionary<ResourceType, int>();
+        Galaxy = galaxy;
+        System = system;
+        Slot = slot;
     }
 
-    public static Planet Create(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt)
+    public static Planet Create(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt, string galaxy = "Unknown", int system = 1, int slot = 1)
     {
         if (!isColonized && (colonizedBy != null || colonizedAt != null))
         {
@@ -61,7 +72,7 @@ public class Planet : Entity
 
         var resources = new Dictionary<ResourceType, int>(InitialResources);
 
-        var planet = new Planet(id, name, isColonized, colonizedBy, colonizedAt, mines, resources);
+        var planet = new Planet(id, name, isColonized, colonizedBy, colonizedAt, mines, resources, galaxy, system, slot);
         var planetCreatedEvent = new PlanetCreatedDomainEvent
         {
             EntityId = planet.Id,

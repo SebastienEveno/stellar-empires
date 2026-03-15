@@ -76,6 +76,27 @@ public class PlanetsController : ControllerBase
     }
 
     /// <summary>
+    /// Searches for a planet by its coordinates (galaxy, system, and slot).
+    /// </summary>
+    /// <param name="galaxy">The galaxy name (e.g., "Andromeda", "Milky-Way").</param>
+    /// <param name="system">The system number within the galaxy.</param>
+    /// <param name="slot">The planet slot within the system (1-15).</param>
+    /// <returns>200 OK with the planet's state as <see cref="ReadPlanetDto"/>, or 404 Not Found if no planet exists at those coordinates.</returns>
+    [HttpGet("coordinates/{galaxy}/{system}/{slot}", Name = nameof(GetPlanetByCoordinates))]
+    public async Task<IActionResult> GetPlanetByCoordinates(string galaxy, int system, int slot)
+    {
+        var planets = await _planetStore.GetPlanetsAsync();
+        var planet = planets.FirstOrDefault(p => p.Galaxy == galaxy && p.System == system && p.Slot == slot);
+
+        if (planet == null)
+        {
+            return NotFound($"No planet found at coordinates {galaxy}:{system}:{slot}");
+        }
+
+        return Ok(ReadPlanetDto.FromPlanet(planet));
+    }
+
+    /// <summary>
     /// Creates a new planet.
     /// </summary>
     /// <param name="request">The planet creation request containing name, colonization status, and optional colonization details.</param>
@@ -97,7 +118,10 @@ public class PlanetsController : ControllerBase
             request.Name,
             request.IsColonized,
             request.ColonizedBy,
-            request.ColonizedAt
+            request.ColonizedAt,
+            request.Galaxy,
+            request.System,
+            request.Slot
         );
 
         await _planetStore.SavePlanetAsync(newPlanet);
