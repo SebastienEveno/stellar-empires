@@ -1,4 +1,5 @@
 using StellarEmpires.Application.Commands;
+using StellarEmpires.Application.Queries;
 using StellarEmpires.Domain.Services;
 using StellarEmpires.Infrastructure;
 using StellarEmpires.Infrastructure.EventStore;
@@ -23,6 +24,7 @@ builder.Services.AddScoped<IFileSystem, FileSystem>();
 builder.Services.AddScoped<IEventStore, FileEventStore>();
 builder.Services.AddScoped<IPlanetStore, FilePlanetStore>();
 builder.Services.AddScoped<IPlanetStateRetriever, PlanetStateRetriever>();
+builder.Services.AddScoped<IPlanetQueryHandler, PlanetQueryHandler>();
 builder.Services.AddScoped<IColonizePlanetCommandHandler, ColonizePlanetCommandHandler>();
 builder.Services.AddScoped<IRenamePlanetCommandHandler, RenamePlanetCommandHandler>();
 //builder.Services.AddHostedService<ResourcesBackgroundService>();
