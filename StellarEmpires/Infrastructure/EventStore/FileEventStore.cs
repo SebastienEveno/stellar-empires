@@ -46,7 +46,7 @@ public class FileEventStore : IEventStore
         if (typeof(TEntity) == typeof(Planet))
         {
             var planet = await _planetStore.GetPlanetByIdAsync(domainEvent.EntityId)
-                ?? Planet.Create(domainEvent.EntityId, "New Planet", false, null, null);
+                ?? Planet.Create(domainEvent.EntityId, "New Planet", false, null, null, Galaxy.Unknown, 1, 1);
 
             planet.Apply(domainEvent);
 

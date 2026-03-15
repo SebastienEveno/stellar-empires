@@ -28,7 +28,7 @@ public class FilePlanetStoreTests
         await _planetStore.SavePlanetAsync(planet);
 
         // Assert
-        Assert.That(_fileSystem.Directory.Exists("Infrastructure/PlanetStore"), Is.True);
+        Assert.That(_fileSystem.Directory.Exists("Features/Planets/Repositories"), Is.True);
     }
 
     [Test]
@@ -41,9 +41,9 @@ public class FilePlanetStoreTests
         await _planetStore.SavePlanetAsync(planet);
 
         // Assert
-        Assert.That(_fileSystem.File.Exists("Infrastructure/PlanetStore/planets.json"), Is.True, "The planet file should exist after saving a planet.");
+        Assert.That(_fileSystem.File.Exists("Features/Planets/Repositories/planets.json"), Is.True, "The planet file should exist after saving a planet.");
 
-        var fileContent = await _fileSystem.File.ReadAllTextAsync("Infrastructure/PlanetStore/planets.json");
+        var fileContent = await _fileSystem.File.ReadAllTextAsync("Features/Planets/Repositories/planets.json");
         var planets = JsonSerializer.Deserialize<List<Planet>>(fileContent);
         Assert.That(planets, Has.Count.EqualTo(1));
         Assert.That(planets[0].Id, Is.EqualTo(planet.Id));
@@ -63,7 +63,7 @@ public class FilePlanetStoreTests
         await _planetStore.SavePlanetAsync(updatedPlanet);
 
         // Assert
-        var fileContent = await _fileSystem.File.ReadAllTextAsync("Infrastructure/PlanetStore/planets.json");
+        var fileContent = await _fileSystem.File.ReadAllTextAsync("Features/Planets/Repositories/planets.json");
         var planets = JsonSerializer.Deserialize<List<Planet>>(fileContent);
         Assert.That(planets, Has.Count.EqualTo(1));
         Assert.That(planets[0].Id, Is.EqualTo(updatedPlanet.Id));
