@@ -1,5 +1,6 @@
 ﻿using StellarEmpires.Domain;
 using StellarEmpires.Features.Mines.Domain;
+using StellarEmpires.Features.Mines.Events;
 using StellarEmpires.Features.Planets.Events;
 using StellarEmpires.Shared.Events;
 using System.Text.Json.Serialization;
@@ -244,6 +245,83 @@ public class Planet : Entity
         };
 
         AddDomainEvent(storageUpgradedEvent);
+    }
+
+    /// <summary>
+    /// Triggers production for all mines on this planet for a given time period.
+    /// </summary>
+    /// <param name="hoursPassed">The number of hours for which to calculate production.</param>
+    public void ProduceResources(decimal hoursPassed)
+    {
+        if (hoursPassed <= 0)
+            throw new InvalidOperationException("Hours passed must be greater than zero.");
+
+        foreach (var mine in Mines)
+        {
+            ProduceSingleMine(mine, hoursPassed);
+        }
+    }
+
+    /// <summary>
+    /// Triggers production for a specific mine on this planet.
+    /// </summary>
+    /// <param name="mineId">The ID of the mine to produce.</param>
+    /// <param name="hoursPassed">The number of hours for which to calculate production.</param>
+    public void ProduceSingleMine(Guid mineId, decimal hoursPassed)
+    {
+        if (hoursPassed <= 0)
+            throw new InvalidOperationException("Hours passed must be greater than zero.");
+
+        var mine = Mines.FirstOrDefault(m => m.Id == mineId);
+        if (mine == null)
+            throw new InvalidOperationException($"Mine with ID {mineId} not found on this planet.");
+
+        ProduceSingleMine(mine, hoursPassed);
+    }
+
+    private void ProduceSingleMine(Mine mine, decimal hoursPassed)
+    {
+        if (mine.Level == 0)
+            return;
+
+        var amountProduced = mine.CalculateProduction(hoursPassed);
+        var currentStorageAmount = Resources.ContainsKey(mine.ResourceType) ? Resources[mine.ResourceType] : 0;
+        var storageCapacity = GetStorageCapacity(mine.ResourceType);
+
+        // Check if production would exceed storage capacity
+        if (currentStorageAmount + amountProduced > storageCapacity)
+        {
+            // Production is blocked - raise event and don't add resources
+            var blockedEvent = new MineProductionBlockedDomainEvent
+            {
+                EntityId = Id,
+                MineId = mine.Id,
+                PlanetId = Id,
+                ResourceType = mine.ResourceType,
+                ProductionBlocked = amountProduced,
+                CurrentStorageAmount = currentStorageAmount,
+                StorageCapacityLimit = storageCapacity
+            };
+
+            AddDomainEvent(blockedEvent);
+            return;
+        }
+
+        // Add produced resources to storage
+        if (!Resources.ContainsKey(mine.ResourceType))
+        {
+            Resources[mine.ResourceType] = 0;
+        }
+
+        Resources[mine.ResourceType] += amountProduced;
+
+        // Raise production event
+        mine.ProduceResources(hoursPassed);
+        foreach (var @event in mine.DomainEvents)
+        {
+            AddDomainEvent(@event);
+        }
+        mine.ClearDomainEvents();
     }
 
     public void Colonize(Guid playerId)
