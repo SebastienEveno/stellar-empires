@@ -1,4 +1,5 @@
-﻿using StellarEmpires.Features.Planets.Domain;
+﻿using StellarEmpires.Features.Mines.Domain;
+using StellarEmpires.Features.Planets.Domain;
 using StellarEmpires.Features.Planets.Events;
 using StellarEmpires.Helpers;
 
@@ -423,5 +424,214 @@ public class PlanetTests
         Assert.That(planetC.Galaxy, Is.EqualTo(Galaxy.MilkyWay));
         Assert.That(planetC.System, Is.EqualTo(2));
         Assert.That(planetC.Slot, Is.EqualTo(15));
+    }
+
+    [Test]
+    public void CreatePlanet_ShouldInitializeStorageCapacities()
+    {
+        // Act
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+
+        // Assert
+        Assert.That(planet.StorageCapacities, Has.Count.EqualTo(3));
+        Assert.That(planet.StorageCapacities.Keys, Contains.Item(ResourceType.Metal));
+        Assert.That(planet.StorageCapacities.Keys, Contains.Item(ResourceType.Crystal));
+        Assert.That(planet.StorageCapacities.Keys, Contains.Item(ResourceType.Deuterium));
+
+        foreach (var capacity in planet.StorageCapacities.Values)
+        {
+            Assert.That(capacity.Capacity, Is.EqualTo(StorageCapacity.BaseCapacity));
+        }
+    }
+
+    [Test]
+    public void GetStorageCapacity_ShouldReturnBaseCapacityInitially()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+
+        // Act & Assert
+        Assert.That(planet.GetStorageCapacity(ResourceType.Metal), Is.EqualTo(StorageCapacity.BaseCapacity));
+        Assert.That(planet.GetStorageCapacity(ResourceType.Crystal), Is.EqualTo(StorageCapacity.BaseCapacity));
+        Assert.That(planet.GetStorageCapacity(ResourceType.Deuterium), Is.EqualTo(StorageCapacity.BaseCapacity));
+    }
+
+    [Test]
+    public void GetRemainingStorageCapacity_ShouldCalculateCorrectly()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        planet.Resources[ResourceType.Metal] = 50000; // Half of base capacity
+
+        // Act
+        var remaining = planet.GetRemainingStorageCapacity(ResourceType.Metal);
+
+        // Assert
+        Assert.That(remaining, Is.EqualTo(StorageCapacity.BaseCapacity - 50000));
+    }
+
+    [Test]
+    public void IsStorageFull_ShouldReturnCorrectly()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+
+        // Act & Assert
+        Assert.That(planet.IsStorageFull(ResourceType.Metal), Is.False);
+
+        planet.Resources[ResourceType.Metal] = StorageCapacity.BaseCapacity;
+        Assert.That(planet.IsStorageFull(ResourceType.Metal), Is.True);
+    }
+
+    [Test]
+    public void WouldExceedStorage_ShouldReturnCorrectly()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        planet.Resources[ResourceType.Metal] = StorageCapacity.BaseCapacity - 1000;
+
+        // Act & Assert
+        Assert.That(planet.WouldExceedStorage(ResourceType.Metal, 500), Is.False);
+        Assert.That(planet.WouldExceedStorage(ResourceType.Metal, 1000), Is.False); // Exactly fills
+        Assert.That(planet.WouldExceedStorage(ResourceType.Metal, 1001), Is.True);
+    }
+
+    [Test]
+    public void UpgradeMine_ShouldThrowException_WhenStorageIsFull()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        planet.Resources[ResourceType.Metal] = StorageCapacity.BaseCapacity;
+
+        // Add enough resources for mine upgrade
+        planet.Resources[ResourceType.Crystal] = 10000;
+        planet.Resources[ResourceType.Deuterium] = 10000;
+
+        // Act & Assert
+        var ex = Assert.Throws<InvalidOperationException>(() => planet.UpgradeMine(ResourceType.Metal));
+        Assert.That(ex.Message, Does.Contain("Storage for Metal is full"));
+    }
+
+    [Test]
+    public void UpgradeStorage_ShouldCreateStorageBuildingIfNotExists()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        Assert.That(planet.StorageBuilding, Is.Null);
+
+        // Need resources for upgrade
+        planet.Resources[ResourceType.Metal] = 10000;
+        planet.Resources[ResourceType.Crystal] = 10000;
+        planet.Resources[ResourceType.Deuterium] = 10000;
+
+        // Act
+        planet.UpgradeStorage();
+
+        // Assert
+        Assert.That(planet.StorageBuilding, Is.Not.Null);
+        Assert.That(planet.StorageBuilding!.Level, Is.EqualTo(2)); // Started at 1, upgraded to 2
+    }
+
+    [Test]
+    public void UpgradeStorage_ShouldIncreaseTotalCapacity()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        var initialCapacity = planet.GetStorageCapacity(ResourceType.Metal);
+
+        // Need resources for upgrade
+        planet.Resources[ResourceType.Metal] = 100000;
+        planet.Resources[ResourceType.Crystal] = 100000;
+        planet.Resources[ResourceType.Deuterium] = 100000;
+
+        // Act
+        planet.UpgradeStorage();
+
+        // Assert
+        var newCapacity = planet.GetStorageCapacity(ResourceType.Metal);
+        Assert.That(newCapacity, Is.GreaterThan(initialCapacity));
+        // Storage was created at level 1, then upgraded to level 2
+        // Level 2 storage provides 2 * CapacityPerLevel additional capacity
+        var expectedCapacity = StorageCapacity.BaseCapacity + (2 * Storage.CapacityPerLevel);
+        Assert.That(newCapacity, Is.EqualTo(expectedCapacity));
+    }
+
+    [Test]
+    public void UpgradeStorage_ShouldThrowException_WhenNotEnoughResources()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        // Don't add resources - they'll be insufficient
+
+        // Act & Assert
+        Assert.Throws<InvalidOperationException>(() => planet.UpgradeStorage());
+    }
+
+    [Test]
+    public void UpgradeStorage_ShouldRaiseDomainEvent()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        planet.Resources[ResourceType.Metal] = 100000;
+        planet.Resources[ResourceType.Crystal] = 100000;
+        planet.Resources[ResourceType.Deuterium] = 100000;
+
+        // Act
+        planet.UpgradeStorage();
+
+        // Assert
+        var domainEvent = planet.DomainEvents.OfType<StorageUpgradedDomainEvent>().FirstOrDefault();
+        Assert.That(domainEvent, Is.Not.Null);
+        Assert.That(domainEvent!.NewLevel, Is.EqualTo(2));
+        Assert.That(domainEvent.TotalAdditionalCapacity, Is.EqualTo(Storage.CapacityPerLevel * 2));
+    }
+
+    [Test]
+    public void UpgradeMine_ShouldRaiseStorageFullEvent_WhenStorageIsFull()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        planet.Resources[ResourceType.Metal] = StorageCapacity.BaseCapacity;
+        planet.Resources[ResourceType.Crystal] = 10000;
+        planet.Resources[ResourceType.Deuterium] = 10000;
+
+        // Act
+        try
+        {
+            planet.UpgradeMine(ResourceType.Metal);
+        }
+        catch (InvalidOperationException)
+        {
+            // Expected
+        }
+
+        // Assert
+        var storageFullEvent = planet.DomainEvents.OfType<StorageFullDomainEvent>().FirstOrDefault();
+        Assert.That(storageFullEvent, Is.Not.Null);
+        Assert.That(storageFullEvent!.ResourceType, Is.EqualTo(ResourceType.Metal));
+        Assert.That(storageFullEvent.CurrentAmount, Is.EqualTo(StorageCapacity.BaseCapacity));
+        Assert.That(storageFullEvent.Capacity, Is.EqualTo(StorageCapacity.BaseCapacity));
+    }
+
+    [Test]
+    public void UpgradeStorage_MultipleTimes_ShouldCumulateCapacity()
+    {
+        // Arrange
+        var planet = Planet.Create(Guid.NewGuid(), "Test Planet", false, null, null);
+        var initialCapacity = planet.GetStorageCapacity(ResourceType.Metal);
+
+        // Act - Upgrade storage twice
+        for (int i = 0; i < 2; i++)
+        {
+            planet.Resources[ResourceType.Metal] = 100000;
+            planet.Resources[ResourceType.Crystal] = 100000;
+            planet.Resources[ResourceType.Deuterium] = 100000;
+            planet.UpgradeStorage();
+        }
+
+        // Assert
+        var finalCapacity = planet.GetStorageCapacity(ResourceType.Metal);
+        var expectedCapacity = initialCapacity + (Storage.CapacityPerLevel * 3); // Level 1,2,3
+        Assert.That(finalCapacity, Is.EqualTo(expectedCapacity));
     }
 }

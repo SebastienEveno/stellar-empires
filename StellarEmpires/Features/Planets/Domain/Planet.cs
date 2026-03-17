@@ -20,6 +20,10 @@ public class Planet : Entity
     public int System { get; private set; }
     public int Slot { get; private set; }
 
+    // Storage
+    public Storage? StorageBuilding { get; private set; }
+    public Dictionary<ResourceType, StorageCapacity> StorageCapacities { get; private set; }
+
     private static readonly Dictionary<ResourceType, int> InitialResources = new Dictionary<ResourceType, int>
         {
             { ResourceType.Metal, 500 }, // Initial amount of Metal
@@ -38,7 +42,9 @@ public class Planet : Entity
         Dictionary<ResourceType, int> resources,
         Galaxy galaxy,
         int system,
-        int slot) : base(id)
+        int slot,
+        Storage? storageBuilding,
+        Dictionary<ResourceType, StorageCapacity>? storageCapacities) : base(id)
     {
         Name = name;
         IsColonized = isColonized;
@@ -49,6 +55,8 @@ public class Planet : Entity
         Galaxy = galaxy;
         System = system;
         Slot = slot;
+        StorageBuilding = storageBuilding;
+        StorageCapacities = storageCapacities ?? InitializeDefaultStorageCapacities();
     }
 
     public static Planet Create(Guid id, string name, bool isColonized, Guid? colonizedBy, DateTime? colonizedAt, Galaxy galaxy = Galaxy.Unknown, int system = 1, int slot = 1)
@@ -71,8 +79,9 @@ public class Planet : Entity
             };
 
         var resources = new Dictionary<ResourceType, int>(InitialResources);
+        var storageCapacities = InitializeDefaultStorageCapacities();
 
-        var planet = new Planet(id, name, isColonized, colonizedBy, colonizedAt, mines, resources, galaxy, system, slot);
+        var planet = new Planet(id, name, isColonized, colonizedBy, colonizedAt, mines, resources, galaxy, system, slot, null, storageCapacities);
         var planetCreatedEvent = new PlanetCreatedDomainEvent
         {
             EntityId = planet.Id,
@@ -86,12 +95,94 @@ public class Planet : Entity
         return planet;
     }
 
+    private static Dictionary<ResourceType, StorageCapacity> InitializeDefaultStorageCapacities()
+    {
+        return new Dictionary<ResourceType, StorageCapacity>
+        {
+            { ResourceType.Metal, StorageCapacity.CreateWithBaseCapacity(ResourceType.Metal) },
+            { ResourceType.Crystal, StorageCapacity.CreateWithBaseCapacity(ResourceType.Crystal) },
+            { ResourceType.Deuterium, StorageCapacity.CreateWithBaseCapacity(ResourceType.Deuterium) }
+        };
+    }
+
+    /// <summary>
+    /// Get the total storage capacity for a resource type (base + storage building upgrades).
+    /// </summary>
+    public int GetStorageCapacity(ResourceType resourceType)
+    {
+        if (!StorageCapacities.ContainsKey(resourceType))
+        {
+            throw new InvalidOperationException($"No storage capacity defined for {resourceType}.");
+        }
+
+        var baseCapacity = StorageCapacities[resourceType].Capacity;
+        var additionalCapacity = StorageBuilding?.GetTotalAdditionalCapacity() ?? 0;
+
+        return baseCapacity + additionalCapacity;
+    }
+
+    /// <summary>
+    /// Get the remaining storage capacity for a resource type.
+    /// </summary>
+    public int GetRemainingStorageCapacity(ResourceType resourceType)
+    {
+        if (!StorageCapacities.ContainsKey(resourceType))
+        {
+            throw new InvalidOperationException($"No storage capacity defined for {resourceType}.");
+        }
+
+        var currentAmount = Resources.ContainsKey(resourceType) ? Resources[resourceType] : 0;
+        var totalCapacity = GetStorageCapacity(resourceType);
+
+        return totalCapacity - currentAmount;
+    }
+
+    /// <summary>
+    /// Check if storage is full for a specific resource type.
+    /// </summary>
+    public bool IsStorageFull(ResourceType resourceType)
+    {
+        if (!StorageCapacities.ContainsKey(resourceType))
+        {
+            return false;
+        }
+
+        var currentAmount = Resources.ContainsKey(resourceType) ? Resources[resourceType] : 0;
+        var totalCapacity = GetStorageCapacity(resourceType);
+
+        return currentAmount >= totalCapacity;
+    }
+
+    /// <summary>
+    /// Check if adding resources would exceed storage capacity.
+    /// </summary>
+    public bool WouldExceedStorage(ResourceType resourceType, int amount)
+    {
+        var remaining = GetRemainingStorageCapacity(resourceType);
+        return amount > remaining;
+    }
+
     public void UpgradeMine(ResourceType resourceType)
     {
         var mine = Mines.SingleOrDefault(m => m.ResourceType == resourceType);
         if (mine == null)
         {
             throw new InvalidOperationException($"No mine of type {resourceType} exists on this planet.");
+        }
+
+        // Check if storage is full before allowing upgrade
+        if (IsStorageFull(resourceType))
+        {
+            var storageFull = new StorageFullDomainEvent
+            {
+                EntityId = Id,
+                ResourceType = resourceType,
+                CurrentAmount = Resources.ContainsKey(resourceType) ? Resources[resourceType] : 0,
+                Capacity = GetStorageCapacity(resourceType)
+            };
+            AddDomainEvent(storageFull);
+
+            throw new InvalidOperationException($"Storage for {resourceType} is full. Production is prevented. Upgrade your storage building or reduce resources.");
         }
 
         var upgradeCost = mine.GetUpgradeCost(mine.Level + 1);
@@ -110,6 +201,49 @@ public class Planet : Entity
         }
 
         mine.Upgrade(upgradeCost);
+    }
+
+    /// <summary>
+    /// Upgrade the storage building to the next level.
+    /// </summary>
+    public void UpgradeStorage()
+    {
+        if (StorageBuilding == null)
+        {
+            // Create storage building if it doesn't exist
+            StorageBuilding = Storage.Create(Guid.NewGuid(), Id);
+        }
+
+        var nextLevel = StorageBuilding.Level + 1;
+        var upgradeCost = StorageBuilding.GetUpgradeCost(nextLevel);
+
+        // Check if we have enough resources
+        foreach (var cost in upgradeCost)
+        {
+            if (!Resources.ContainsKey(cost.Key) || Resources[cost.Key] < cost.Value)
+            {
+                throw new InvalidOperationException($"Not enough {cost.Key} to upgrade storage. Required: {cost.Value}");
+            }
+        }
+
+        // Deduct resources
+        foreach (var cost in upgradeCost)
+        {
+            Resources[cost.Key] -= cost.Value;
+        }
+
+        // Upgrade the storage building
+        StorageBuilding.Upgrade();
+
+        // Raise domain event
+        var storageUpgradedEvent = new StorageUpgradedDomainEvent
+        {
+            EntityId = Id,
+            NewLevel = StorageBuilding.Level,
+            TotalAdditionalCapacity = StorageBuilding.GetTotalAdditionalCapacity()
+        };
+
+        AddDomainEvent(storageUpgradedEvent);
     }
 
     public void Colonize(Guid playerId)
@@ -170,6 +304,12 @@ public class Planet : Entity
         if (@event is PlanetRenamedDomainEvent planetRenamedDomainEvent)
         {
             Name = planetRenamedDomainEvent.PlanetName;
+        }
+
+        if (@event is StorageUpgradedDomainEvent storageUpgradedEvent)
+        {
+            // Event already updated the StorageBuilding state
+            // This is here for event replay consistency
         }
     }
 }
