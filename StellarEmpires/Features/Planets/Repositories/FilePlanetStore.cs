@@ -1,6 +1,7 @@
 ﻿using StellarEmpires.Features.Planets.Domain;
 using System.IO.Abstractions;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace StellarEmpires.Features.Planets.Repositories;
 
@@ -17,7 +18,12 @@ public class FilePlanetStore : IPlanetStore
         _jsonOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+            }
         };
     }
 
