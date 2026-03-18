@@ -129,6 +129,51 @@ public class Mine : Entity
         AddDomainEvent(mineUpgradedEvent);
     }
 
+    /// <summary>
+    /// Calculates production for this mine over a given time period.
+    /// </summary>
+    /// <param name="hoursPassed">The number of hours of production to calculate.</param>
+    /// <returns>The amount of resources produced.</returns>
+    public int CalculateProduction(decimal hoursPassed)
+    {
+        if (hoursPassed <= 0)
+            throw new InvalidOperationException("Hours passed must be greater than zero.");
+
+        if (Level == 0)
+            return 0;
+
+        return (int)(ProductionRatePerHour * hoursPassed);
+    }
+
+    /// <summary>
+    /// Produces resources for this mine and raises appropriate domain events.
+    /// </summary>
+    /// <param name="hoursPassed">The number of hours of production to calculate.</param>
+    public void ProduceResources(decimal hoursPassed)
+    {
+        if (hoursPassed <= 0)
+            throw new InvalidOperationException("Hours passed must be greater than zero.");
+
+        if (Level == 0)
+            return;
+
+        var amountProduced = CalculateProduction(hoursPassed);
+
+        var productionEvent = new MineProductionDomainEvent
+        {
+            EntityId = PlanetId,
+            MineId = Id,
+            PlanetId = PlanetId,
+            ResourceType = ResourceType,
+            AmountProduced = amountProduced,
+            ProductionRatePerHour = ProductionRatePerHour,
+            MineLevel = Level,
+            HoursPassed = hoursPassed
+        };
+
+        AddDomainEvent(productionEvent);
+    }
+
     public override void Apply(IDomainEvent domainEvent)
     {
         if (domainEvent is MineCreatedDomainEvent mineCreatedEvent)
